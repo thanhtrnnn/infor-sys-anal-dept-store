@@ -1,0 +1,163 @@
+@startuml
+!include _style.iuml
+title [Bản cũ – kiến trúc Servlet, đi kèm mã Java thử nghiệm] Biểu đồ lớp thiết kế chi tiết – Module 2: Approve and Export Order 0 (MVC – J2EE)
+
+package view {
+  class SaleHomeView <<JSP>> {
+    -subBrowseOrder: link
+  }
+  class OrderListView <<JSP>> {
+    -inStatusFilter: select
+    -subFilter: button
+    -outsubOrderList: table
+  }
+  class OrderDetailView <<JSP>> {
+    -outCustomerInfo: text
+    -outsubOrderItemList: table
+    -outTotalAmount: text
+    -outStatus: text
+    -outMessage: text
+    -subApprove: button
+    -subAssignDelivery: button
+    -subExport: button
+    -subPrintInvoice: button
+  }
+  class DeliveryStaffListView <<JSP>> {
+    -outsubDeliveryStaffList: table
+    -subSaveAssign: button
+  }
+  class InvoicePrintView <<JSP>> {
+    -outInvoiceInfo: text
+    -outsubInvoiceItemList: table
+    -outTotalAmount: text
+    -subPrint: button
+  }
+}
+package controller {
+  class OrderExportController <<Servlet>> {
+    -orderDAO: OrderDAO
+    -deliveryStaffDAO: DeliveryStaffDAO
+    +init(): void
+    #doGet(req: HttpServletRequest, resp: HttpServletResponse): void
+    #doPost(req: HttpServletRequest, resp: HttpServletResponse): void
+    +{static} exportMessage(orderId: String, result: ExportResult): String
+    -showDetail(req, resp, orderId: String, message: String): void
+    -{static} currentStaff(req, resp): SaleStaff
+  }
+  class InvoicePrintController <<Servlet>> {
+    -invoiceDAO: InvoiceDAO
+    +init(): void
+    #doGet(req: HttpServletRequest, resp: HttpServletResponse): void
+  }
+}
+package dao {
+  interface OrderDAO {
+    +getUnexportedOrders(): List<Order>
+    +getOrderById(orderId: String): Order
+    +approveOrder(orderId: String, saleStaffId: String): boolean
+    +assignDeliveryStaff(orderId: String, deliveryStaffId: String): boolean
+    +exportOrder(orderId: String, saleStaffId: String): ExportResult
+  }
+  interface OrderDetailDAO {
+    +getByOrder(orderId: String): List<OrderDetail>
+  }
+  interface ProductDAO {
+    +checkStock(conn: Connection, details: List<OrderDetail>): List<OrderDetail>
+    +decreaseStock(conn: Connection, details: List<OrderDetail>): boolean
+  }
+  interface DeliveryStaffDAO {
+    +getAvailableDeliveryStaff(): List<DeliveryStaff>
+  }
+  interface InvoiceDAO {
+    +getInvoiceByOrder(orderId: String): Invoice
+    +issueInvoice(conn: Connection, orderId: String, issueDate: LocalDateTime): void
+  }
+  class ExportResult {
+    -code: Code
+    -shortages: List<OrderDetail>
+    +{static} of(code: Code): ExportResult
+  }
+  enum "ExportResult.Code" as Code {
+    SUCCESS
+    NOT_EXPORTABLE
+    NO_DELIVERY_STAFF
+    OUT_OF_STOCK
+  }
+  class DBConnection {
+    +{static} getConnection(): Connection
+  }
+  package impl {
+    class OrderDAOImpl {
+      -orderDetailDAO: OrderDetailDAO
+      -productDAO: ProductDAO
+      -invoiceDAO: InvoiceDAO
+      -clock: Clock
+    }
+    class OrderDetailDAOImpl
+    class ProductDAOImpl
+    class DeliveryStaffDAOImpl
+    class InvoiceDAOImpl
+  }
+}
+package model {
+  !include _model.iuml
+  class SaleStaff <<model>> {
+    -staffId: String
+    -fullName: String
+    -position: String
+  }
+  class DeliveryStaff <<model>> {
+    -deliveryStaffId: String
+    -fullName: String
+    -phone: String
+    -area: String
+    -status: String
+    -activeOrderCount: int
+  }
+}
+
+' hidden edges keep the MVC layers stacked top-to-bottom
+OrderDetailView -[hidden]down-> OrderExportController
+OrderExportController -[hidden]down-> OrderDAO
+InvoicePrintController -[hidden]down-> InvoiceDAO
+OrderDAO -[hidden]down-> Order
+ProductDAO -[hidden]down-> Product
+
+SaleHomeView --> OrderListView
+OrderListView --> OrderExportController : doGet
+OrderDetailView --> OrderExportController : doGet / doPost
+DeliveryStaffListView --> OrderExportController : doPost
+OrderDetailView --> InvoicePrintController : doGet
+OrderExportController --> OrderListView : forward
+OrderExportController --> OrderDetailView : forward
+OrderExportController --> DeliveryStaffListView : forward
+InvoicePrintController --> InvoicePrintView : forward
+
+OrderExportController ..> OrderDAO : <<use>>
+OrderExportController ..> DeliveryStaffDAO : <<use>>
+InvoicePrintController ..> InvoiceDAO : <<use>>
+OrderDAOImpl ..|> OrderDAO
+OrderDetailDAOImpl ..|> OrderDetailDAO
+ProductDAOImpl ..|> ProductDAO
+DeliveryStaffDAOImpl ..|> DeliveryStaffDAO
+InvoiceDAOImpl ..|> InvoiceDAO
+OrderDAOImpl --> OrderDetailDAO
+OrderDAOImpl --> ProductDAO
+OrderDAOImpl --> InvoiceDAO
+OrderDAO ..> ExportResult : <<use>>
+ExportResult +-- Code
+impl ..> DBConnection : <<use>>
+
+OrderListView ..> Order : <<use>>
+OrderDetailView ..> Order : <<use>>
+DeliveryStaffListView ..> DeliveryStaff : <<use>>
+InvoicePrintView ..> Invoice : <<use>>
+
+Invoice "1" --> "1" Order
+Order "0..*" --> "1" Customer
+Order "0..*" --> "0..1" SaleStaff
+Order "0..*" --> "0..1" DeliveryStaff
+Order "1" *--> "1..*" OrderDetail
+OrderDetail "0..*" --> "1" Product
+Order ..> OrderStatus
+@enduml

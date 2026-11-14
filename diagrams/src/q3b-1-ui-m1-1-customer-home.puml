@@ -1,0 +1,10 @@
+@startsalt
+title gdCustomerHome.jsp – Giao diện chính khách hàng
+{+
+  <b>CỬA HÀNG BÁCH HÓA TRỰC TUYẾN | Xin chào, <b>Nguyễn Văn An</b> | [Đăng xuất]
+  ==
+  {
+    [Tìm kiếm sản phẩm] | [Đặt hàng] | [<b>Theo dõi hóa đơn</b>] | [Đổi mật khẩu]
+  }
+}
+@endsalt

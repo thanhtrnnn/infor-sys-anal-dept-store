@@ -1,0 +1,193 @@
+@startuml
+!include _style.iuml
+title Q3b – Biểu đồ lớp thiết kế – Module 2: Approve and Export Order 0 (JSP + DAO)
+
+' ---- Tầng giao diện (view): trang gd*.jsp hiển thị, trang do*.jsp xử lí submit ----
+class "gdSaleHome.jsp" as gdSaleHome {
+  -subBrowseOrder : link
+  -saleStaff : SaleStaff
+}
+class "gdOrderList.jsp" as gdOrderList {
+  -cbStatus : Select
+  -btnFilter : submit
+  -tblOrder : Table
+  -chooseOrder : link
+  -btnBack : submit
+  -listOrder : Order[]
+}
+class "gdOrderDetail.jsp" as gdOrderDetail {
+  -txtCustomerInfo : Text
+  -tblOrderDetail : Table
+  -txtTotalAmount : Text
+  -txtStatus : Text
+  -txtMessage : Text
+  -btnApprove : submit
+  -btnAssignDelivery : submit
+  -btnExport : submit
+  -btnPrintInvoice : submit
+  -btnBack : submit
+  -order : Order
+}
+class "gdDeliveryStaffList.jsp" as gdDeliveryStaffList {
+  -tblDeliveryStaff : Table
+  -chooseDeliveryStaff : radio
+  -btnSaveAssign : submit
+  -btnBack : submit
+  -order : Order
+  -listDeliveryStaff : DeliveryStaff[]
+}
+class "gdInvoicePrint.jsp" as gdInvoicePrint {
+  -txtInvoiceInfo : Text
+  -tblItem : Table
+  -txtTotalAmount : Text
+  -btnPrint : submit
+  -btnBack : submit
+  -invoice : Invoice
+}
+class "doApproveOrder.jsp" as doApproveOrder {
+  -order : Order
+  -saleStaff : SaleStaff
+}
+class "doSaveAssign.jsp" as doSaveAssign {
+  -order : Order
+  -deliveryStaff : DeliveryStaff
+}
+class "doExportOrder.jsp" as doExportOrder {
+  -order : Order
+  -saleStaff : SaleStaff
+}
+gdSaleHome - gdOrderList
+gdOrderList - gdOrderDetail
+gdOrderDetail - gdDeliveryStaffList
+gdOrderDetail -- gdInvoicePrint
+gdOrderDetail -- doApproveOrder
+gdDeliveryStaffList -- doSaveAssign
+gdOrderDetail -- doExportOrder
+
+' ---- Tầng truy cập dữ liệu (dao) ----
+!include _design_dao.iuml
+class OrderDAO {
+  +OrderDAO()
+  +getUnexportedOrder() : Order[]
+  +approveOrder(order : Order) : boolean
+  +assignDeliveryStaff(order : Order) : boolean
+  +exportOrder(order : Order) : boolean
+}
+class OrderDetailDAO {
+  +OrderDetailDAO()
+  +getOrderDetailByOrder(idOrder : int) : OrderDetail[]
+}
+class ProductDAO {
+  +ProductDAO()
+  +checkStock(listDetail : OrderDetail[]) : boolean
+  +decreaseStock(listDetail : OrderDetail[]) : boolean
+}
+class DeliveryStaffDAO {
+  +DeliveryStaffDAO()
+  +getAvailableDeliveryStaff() : DeliveryStaff[]
+}
+class InvoiceDAO {
+  +InvoiceDAO()
+  +issueInvoice(order : Order) : boolean
+  +getInvoiceDetail(idInvoice : int, idCustomer : int) : Invoice
+}
+OrderDAO -up-|> DAO
+OrderDetailDAO -up-|> DAO
+ProductDAO -up-|> DAO
+DeliveryStaffDAO -up-|> DAO
+InvoiceDAO -up-|> DAO
+gdOrderList -- OrderDAO
+gdOrderDetail -- OrderDetailDAO
+gdDeliveryStaffList -- DeliveryStaffDAO
+gdInvoicePrint -- InvoiceDAO
+doApproveOrder -- OrderDAO
+doSaveAssign -- OrderDAO
+doExportOrder -- OrderDAO
+OrderDAO -- ProductDAO
+OrderDAO -- InvoiceDAO
+
+' ---- Tầng thực thể (model) ----
+class Member {
+  -id : int
+  -username : String
+  -password : String
+  -fullName : String
+  -email : String
+  -phone : String
+  -address : String
+  -role : String
+  -status : String
+  -createdAt : Date
+}
+class Customer {
+  -code : String
+  -memberSince : Date
+}
+class Staff {
+  -code : String
+  -position : String
+}
+class SaleStaff
+class Order {
+  -id : int
+  -code : String
+  -orderDate : Date
+  -shippingAddress : String
+  -totalAmount : double
+  -status : String
+  -approvedAt : Date
+  -exportedAt : Date
+  -customer : Customer
+  -saleStaff : SaleStaff
+  -deliveryStaff : DeliveryStaff
+  -details : OrderDetail[]
+  +getStatusLabel() : String
+}
+class OrderDetail {
+  -id : int
+  -quantity : int
+  -unitPrice : double
+  -lineAmount : double
+  -product : Product
+}
+class Product {
+  -id : int
+  -code : String
+  -name : String
+  -description : String
+  -unit : String
+  -salePrice : double
+  -stockQuantity : int
+  -status : String
+}
+class DeliveryStaff {
+  -id : int
+  -code : String
+  -fullName : String
+  -phone : String
+  -area : String
+  -status : String
+  -activeOrderCount : int
+}
+class Invoice {
+  -id : int
+  -code : String
+  -issueDate : Date
+  -totalAmount : double
+  -order : Order
+}
+OrderDAO -- Order
+OrderDetailDAO -- OrderDetail
+ProductDAO -- Product
+DeliveryStaffDAO -- DeliveryStaff
+InvoiceDAO -- Invoice
+Customer -up-|> Member
+Staff -up-|> Member
+SaleStaff -up-|> Staff
+Invoice "1" o-- "1" Order
+Order "0..*" o-- "1" Customer
+Order "0..*" o-- "0..1" SaleStaff
+Order "0..*" o-- "0..1" DeliveryStaff
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+@enduml

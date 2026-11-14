@@ -1,0 +1,152 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+title Q3b – Biểu đồ lớp thiết kế – Module 1: Track Invoice 0 (JSP + DAO)
+
+' ---- Tầng giao diện (view): trang JSP, thuộc tính giao diện + thuộc tính ẩn ----
+class "gdCustomerHome.jsp" as gdCustomerHome {
+  -subTrackInvoice : link
+  -customer : Customer
+}
+class "gdInvoiceList.jsp" as gdInvoiceList {
+  -tblInvoice : Table
+  -chooseInvoice : link
+  -btnBack : submit
+  -customer : Customer
+  -listInvoice : Invoice[]
+}
+class "gdInvoiceDetail.jsp" as gdInvoiceDetail {
+  -txtInvoiceInfo : Text
+  -tblItem : Table
+  -txtTotalAmount : Text
+  -txtStatus : Text
+  -btnBack : submit
+  -invoice : Invoice
+}
+gdCustomerHome - gdInvoiceList
+gdInvoiceList - gdInvoiceDetail
+
+' ---- Tầng truy cập dữ liệu (dao) ----
+' Lớp DAO cơ sở: dùng chung một kết nối tĩnh cho cả hệ thống (giáo trình mục 4.3.1, bước 3)
+class DAO {
+  #con : Connection {static}
+  +DAO()
+}
+class InvoiceDAO {
+  +InvoiceDAO()
+  +getInvoiceByCustomer(idCustomer : int) : Invoice[]
+  +getInvoiceDetail(idInvoice : int, idCustomer : int) : Invoice
+}
+InvoiceDAO -up-|> DAO
+gdInvoiceList -- InvoiceDAO
+gdInvoiceDetail -- InvoiceDAO
+
+' ---- Tầng thực thể (model) ----
+class Member {
+  -id : int
+  -username : String
+  -password : String
+  -fullName : String
+  -email : String
+  -phone : String
+  -address : String
+  -role : String
+  -status : String
+  -createdAt : Date
+}
+class Customer {
+  -code : String
+  -memberSince : Date
+}
+class Invoice {
+  -id : int
+  -code : String
+  -issueDate : Date
+  -totalAmount : double
+  -order : Order
+}
+class Order {
+  -id : int
+  -code : String
+  -orderDate : Date
+  -shippingAddress : String
+  -totalAmount : double
+  -status : String
+  -approvedAt : Date
+  -exportedAt : Date
+  -customer : Customer
+  -deliveryStaff : DeliveryStaff
+  -details : OrderDetail[]
+  +getStatusLabel() : String
+}
+class OrderDetail {
+  -id : int
+  -quantity : int
+  -unitPrice : double
+  -lineAmount : double
+  -product : Product
+}
+class Product {
+  -id : int
+  -code : String
+  -name : String
+  -description : String
+  -unit : String
+  -salePrice : double
+  -stockQuantity : int
+  -status : String
+}
+class DeliveryStaff {
+  -id : int
+  -code : String
+  -fullName : String
+  -phone : String
+  -area : String
+  -status : String
+  -activeOrderCount : int
+}
+InvoiceDAO -- Invoice
+Customer -up-|> Member
+Invoice "1" o-- "1" Order
+Order "0..*" o-- "1" Customer
+Order "0..*" o-- "0..1" DeliveryStaff
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+@enduml

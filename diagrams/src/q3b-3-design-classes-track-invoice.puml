@@ -1,0 +1,110 @@
+@startuml
+!include _style.iuml
+title Q3b – Biểu đồ lớp thiết kế – Module 1: Track Invoice 0 (JSP + DAO)
+
+' ---- Tầng giao diện (view): trang JSP, thuộc tính giao diện + thuộc tính ẩn ----
+class "gdCustomerHome.jsp" as gdCustomerHome {
+  -subTrackInvoice : link
+  -customer : Customer
+}
+class "gdInvoiceList.jsp" as gdInvoiceList {
+  -tblInvoice : Table
+  -chooseInvoice : link
+  -btnBack : submit
+  -customer : Customer
+  -listInvoice : Invoice[]
+}
+class "gdInvoiceDetail.jsp" as gdInvoiceDetail {
+  -txtInvoiceInfo : Text
+  -tblItem : Table
+  -txtTotalAmount : Text
+  -txtStatus : Text
+  -btnBack : submit
+  -invoice : Invoice
+}
+gdCustomerHome - gdInvoiceList
+gdInvoiceList - gdInvoiceDetail
+
+' ---- Tầng truy cập dữ liệu (dao) ----
+!include _design_dao.iuml
+class InvoiceDAO {
+  +InvoiceDAO()
+  +getInvoiceByCustomer(idCustomer : int) : Invoice[]
+  +getInvoiceDetail(idInvoice : int, idCustomer : int) : Invoice
+}
+InvoiceDAO -up-|> DAO
+gdInvoiceList -- InvoiceDAO
+gdInvoiceDetail -- InvoiceDAO
+
+' ---- Tầng thực thể (model) ----
+class Member {
+  -id : int
+  -username : String
+  -password : String
+  -fullName : String
+  -email : String
+  -phone : String
+  -address : String
+  -role : String
+  -status : String
+  -createdAt : Date
+}
+class Customer {
+  -code : String
+  -memberSince : Date
+}
+class Invoice {
+  -id : int
+  -code : String
+  -issueDate : Date
+  -totalAmount : double
+  -order : Order
+}
+class Order {
+  -id : int
+  -code : String
+  -orderDate : Date
+  -shippingAddress : String
+  -totalAmount : double
+  -status : String
+  -approvedAt : Date
+  -exportedAt : Date
+  -customer : Customer
+  -deliveryStaff : DeliveryStaff
+  -details : OrderDetail[]
+  +getStatusLabel() : String
+}
+class OrderDetail {
+  -id : int
+  -quantity : int
+  -unitPrice : double
+  -lineAmount : double
+  -product : Product
+}
+class Product {
+  -id : int
+  -code : String
+  -name : String
+  -description : String
+  -unit : String
+  -salePrice : double
+  -stockQuantity : int
+  -status : String
+}
+class DeliveryStaff {
+  -id : int
+  -code : String
+  -fullName : String
+  -phone : String
+  -area : String
+  -status : String
+  -activeOrderCount : int
+}
+InvoiceDAO -- Invoice
+Customer -up-|> Member
+Invoice "1" o-- "1" Order
+Order "0..*" o-- "1" Customer
+Order "0..*" o-- "0..1" DeliveryStaff
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+@enduml

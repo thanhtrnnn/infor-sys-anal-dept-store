@@ -1,0 +1,25 @@
+@startuml
+!include _style.iuml
+left to right direction
+title Q3a – Biểu đồ giao tiếp – kịch bản chuẩn Track Invoice 0 (15 bước)
+
+actor "Khách hàng" as Actor
+boundary CustomerHomeView
+boundary InvoiceListView
+boundary InvoiceDetailView
+entity Invoice
+
+Actor -- CustomerHomeView : 1: click subTrackInvoice >
+CustomerHomeView -- InvoiceListView : 2: gọi >
+InvoiceListView -- Invoice : 3: gọi >
+Invoice -- Invoice : "4: getInvoiceByCustomer()\n10: getInvoiceDetail()"
+Invoice -- InvoiceListView : 5: trả về >
+InvoiceListView -- Actor : 6: hiển thị\n15: hiển thị >
+Actor -- InvoiceListView : 7: click hóa đơn HD1024 >
+InvoiceListView -- InvoiceDetailView : 8: gọi >
+InvoiceDetailView -- Invoice : 9: gọi >
+Invoice -- InvoiceDetailView : 11: trả về >
+InvoiceDetailView -- Actor : 12: hiển thị >
+Actor -- InvoiceDetailView : 13: click subBack >
+InvoiceDetailView -- InvoiceListView : 14: gọi >
+@enduml

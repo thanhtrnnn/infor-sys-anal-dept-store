@@ -1,0 +1,5 @@
+' Lớp DAO cơ sở: dùng chung một kết nối tĩnh cho cả hệ thống (giáo trình mục 4.3.1, bước 3)
+class DAO {
+  #con : Connection {static}
+  +DAO()
+}

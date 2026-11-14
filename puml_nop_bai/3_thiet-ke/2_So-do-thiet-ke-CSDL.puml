@@ -1,0 +1,161 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+left to right direction
+skinparam linetype ortho
+title Thiết kế – Biểu đồ CSDL của HỆ THỐNG (sql/system_schema.sql)
+
+entity tblMember {
+  * id : integer(10) <<PK>>
+  --
+  * username : varchar(255) <<U>>
+  * password : varchar(255)
+  * fullName : varchar(255)
+  email : varchar(255)
+  phone : varchar(20)
+  address : varchar(255)
+  * role : varchar(20)
+  * status : varchar(20)
+  * createdAt : date
+}
+entity tblCustomer {
+  * tblMemberid : integer(10) <<PK, FK>>
+  --
+  * code : varchar(20) <<U>>
+  * memberSince : date
+}
+entity tblStaff {
+  * tblMemberid : integer(10) <<PK, FK>>
+  --
+  * code : varchar(20) <<U>>
+  * position : varchar(255)
+}
+entity tblDeliveryStaff {
+  * id : integer(10) <<PK>>
+  --
+  * code : varchar(20) <<U>>
+  * fullName : varchar(255)
+  * phone : varchar(20)
+  area : varchar(255)
+  * status : varchar(20)
+}
+entity tblSupplier {
+  * id : integer(10) <<PK>>
+  --
+  * code : varchar(20) <<U>>
+  * name : varchar(255)
+  address : varchar(255)
+  phone : varchar(20)
+  email : varchar(255)
+  * status : varchar(20)
+}
+entity tblProductCategory {
+  * id : integer(10) <<PK>>
+  --
+  * name : varchar(255)
+  description : varchar(255)
+}
+entity tblProduct {
+  * id : integer(10) <<PK>>
+  --
+  * code : varchar(20) <<U>>
+  * name : varchar(255)
+  description : varchar(255)
+  * unit : varchar(50)
+  * salePrice : float(10)
+  * stockQuantity : integer(10)
+  * status : varchar(20)
+  * tblProductCategoryid : integer(10) <<FK>>
+}
+entity tblImportReceipt {
+  * id : integer(10) <<PK>>
+  --
+  * code : varchar(20) <<U>>
+  * importDate : date
+  * status : varchar(20)
+  note : varchar(255)
+  * tblSupplierid : integer(10) <<FK>>
+  * tblStaffid : integer(10) <<FK>>
+}
+entity tblImportReceiptDetail {
+  * id : integer(10) <<PK>>
+  --
+  * quantity : integer(10)
+  * unitCost : float(10)
+  * tblImportReceiptid : integer(10) <<FK>>
+  * tblProductid : integer(10) <<FK>>
+}
+entity tblOrder {
+  * id : integer(10) <<PK>>
+  --
+  * code : varchar(20) <<U>>
+  * orderDate : datetime
+  * shippingAddress : varchar(255)
+  * status : varchar(20)
+  approvedAt : datetime
+  exportedAt : datetime
+  * invoiceCode : varchar(20) <<U>>
+  issueDate : datetime
+  * tblCustomerid : integer(10) <<FK>>
+  tblStaffid : integer(10) <<FK>>
+  tblDeliveryStaffid : integer(10) <<FK>>
+}
+entity tblOrderDetail {
+  * id : integer(10) <<PK>>
+  --
+  * quantity : integer(10)
+  * unitPrice : float(10)
+  * tblOrderid : integer(10) <<FK>>
+  * tblProductid : integer(10) <<FK>>
+}
+
+tblMember ||--|| tblCustomer
+tblMember ||--|| tblStaff
+tblProductCategory ||--o{ tblProduct
+tblSupplier ||--o{ tblImportReceipt
+tblStaff ||--o{ tblImportReceipt
+tblImportReceipt ||--o{ tblImportReceiptDetail
+tblProduct ||--o{ tblImportReceiptDetail
+tblCustomer ||--o{ tblOrder
+tblStaff |o--o{ tblOrder
+tblDeliveryStaff |o--o{ tblOrder
+tblOrder ||--o{ tblOrderDetail
+tblProduct ||--o{ tblOrderDetail
+@enduml

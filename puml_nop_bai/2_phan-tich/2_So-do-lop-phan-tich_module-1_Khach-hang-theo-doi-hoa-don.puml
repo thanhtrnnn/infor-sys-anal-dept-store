@@ -1,0 +1,119 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+title Q3a – Biểu đồ lớp phân tích – Module 1: Track Invoice 0
+
+' Hàng trên: các lớp biên theo thứ tự giao diện
+class CustomerHomeView {
+  -subTrackInvoice
+}
+class InvoiceListView {
+  -outsubInvoiceList
+  -subBack
+}
+class InvoiceDetailView {
+  -outInvoiceInfo
+  -outsubItemList
+  -outTotalAmount
+  -outStatus
+  -subBack
+}
+CustomerHomeView - InvoiceListView
+InvoiceListView - InvoiceDetailView
+
+' Hàng dưới: các lớp thực thể, giữ nguyên quan hệ của biểu đồ thực thể (Q2b)
+class Invoice {
+  -code
+  -issueDate
+  -totalAmount
+  +getInvoiceByCustomer()
+  +getInvoiceDetail()
+}
+class Order {
+  -code
+  -orderDate
+  -shippingAddress
+  -totalAmount
+  -status
+  -approvedAt
+  -exportedAt
+}
+class OrderDetail {
+  -quantity
+  -unitPrice
+  -lineAmount
+}
+class Product {
+  -code
+  -productName
+  -unit
+  -salePrice
+  -stockQuantity
+  -status
+}
+class Member {
+  -username
+  -password
+  -fullName
+  -email
+  -phone
+  -address
+}
+class Customer {
+  -code
+}
+class DeliveryStaff {
+  -code
+  -fullName
+  -phone
+  -area
+  -status
+}
+
+InvoiceListView -- Invoice
+InvoiceDetailView -- Invoice
+
+Customer "1" -- "0..*" Order
+DeliveryStaff "0..1" -- "0..*" Order
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+Order "1" -- "1" Invoice
+Customer -up-|> Member
+@enduml

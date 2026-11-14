@@ -1,0 +1,29 @@
+@startuml
+!include _style.iuml
+allowmixing
+left to right direction
+title [Bản cũ – kiến trúc Servlet, đi kèm mã Java thử nghiệm] Biểu đồ giao tiếp mức thiết kế (MVC) – Track Invoice 0 (khách hàng KH01 xem HD1024)
+
+actor "Customer" as A
+object ":CustomerHomeView" as Home <<JSP>>
+object ":InvoiceListView" as ListV <<JSP>>
+object ":InvoiceDetailView" as DetailV <<JSP>>
+object ":InvoiceTrackingController" as Ctl <<Servlet>>
+object ":InvoiceDAOImpl" as IDAO <<DAO>>
+object ":OrderDetailDAOImpl" as ODAO <<DAO>>
+object ":Invoice" as Inv <<entity>>
+object ":OrderDetail" as OD <<entity>>
+
+A --> Home : 1: click subTrackInvoice
+Home --> Ctl : 2: doGet()
+Ctl --> IDAO : 3: getInvoicesByCustomer(customerId)\n11: getInvoiceOfCustomer(invoiceId, customerId)
+IDAO --> Inv : 4: new Invoice()\n12: new Invoice()
+IDAO --> ODAO : 5: getByOrder(orderId)\n13: getByOrder(orderId)
+ODAO --> OD : 6: new OrderDetail()\n14: new OrderDetail()
+Ctl --> ListV : 7: forward(invoices)
+ListV --> A : 8: hiển thị danh sách hóa đơn
+A --> ListV : 9: click hóa đơn HD1024
+ListV --> Ctl : 10: doGet(invoiceId)
+Ctl --> DetailV : 15: forward(invoice)
+DetailV --> A : 16: hiển thị chi tiết + trạng thái hiện tại
+@enduml

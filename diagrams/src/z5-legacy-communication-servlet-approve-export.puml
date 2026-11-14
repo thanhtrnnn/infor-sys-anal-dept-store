@@ -1,0 +1,54 @@
+@startuml
+!include _style.iuml
+allowmixing
+left to right direction
+title [Bản cũ – kiến trúc Servlet, đi kèm mã Java thử nghiệm] Biểu đồ giao tiếp mức thiết kế (MVC) – Approve and Export Order 0 (NV01 xuất DH1024, giao GH03)
+
+actor "Sale Staff" as A
+object ":SaleHomeView" as Home <<JSP>>
+object ":OrderListView" as OLV <<JSP>>
+object ":OrderDetailView" as ODV <<JSP>>
+object ":DeliveryStaffListView" as DSV <<JSP>>
+object ":InvoicePrintView" as IPV <<JSP>>
+object ":OrderExportController" as Ctl <<Servlet>>
+object ":InvoicePrintController" as PCtl <<Servlet>>
+object ":OrderDAOImpl" as ODAO <<DAO>>
+object ":OrderDetailDAOImpl" as DDAO <<DAO>>
+object ":DeliveryStaffDAOImpl" as SDAO <<DAO>>
+object ":ProductDAOImpl" as PDAO <<DAO>>
+object ":InvoiceDAOImpl" as IDAO <<DAO>>
+object ":Order" as Ord <<entity>>
+object ":OrderDetail" as OD <<entity>>
+object ":DeliveryStaff" as DS <<entity>>
+object ":Invoice" as Inv <<entity>>
+
+A --> Home : 1: click subBrowseOrder
+Home --> OLV : 2: mở giao diện
+A --> OLV : 3: chọn "Chưa xuất" + click subFilter\n9: click đơn DH1024
+OLV --> Ctl : 4: doGet(action=list)\n10: doGet(action=detail, orderId)
+Ctl --> ODAO : 5: getUnexportedOrders()\n11: getOrderById(orderId)\n18: approveOrder(orderId, staffId)\n19: getOrderById(orderId)\n30: assignDeliveryStaff(orderId, deliveryStaffId)\n31: getOrderById(orderId)\n36: exportOrder(orderId, staffId)\n40: getOrderById(orderId)
+ODAO --> Ord : 6: new Order()
+Ctl --> OLV : 7: forward(orders)
+OLV --> A : 8: hiển thị danh sách đơn chưa xuất
+ODAO --> DDAO : 12: getByOrder(orderId)
+DDAO --> OD : 13: new OrderDetail()
+Ctl --> ODV : 14: forward(order)\n20: forward(order, message)\n32: forward(order, message)\n41: forward(order, message)
+ODV --> A : 15: hiển thị chi tiết đơn\n21: hiển thị "Đã duyệt"\n33: hiển thị nút xác nhận xuất\n42: "Xuất hàng thành công"
+A --> ODV : 16: click subApprove\n22: click subAssignDelivery\n34: click subExport\n43: click subPrintInvoice
+ODV --> Ctl : 17: doPost(action=approve)\n23: doGet(action=deliveryStaff)\n35: doPost(action=export)
+Ctl --> SDAO : 24: getAvailableDeliveryStaff()
+SDAO --> DS : 25: new DeliveryStaff()
+Ctl --> DSV : 26: forward(deliveryStaffList)
+DSV --> A : 27: hiển thị danh sách nhân viên giao hàng
+A --> DSV : 28: chọn GH03 + click subSaveAssign
+DSV --> Ctl : 29: doPost(action=assign)
+ODAO --> PDAO : 37: checkStock(conn, details)\n38: decreaseStock(conn, details)
+ODAO --> IDAO : 39: issueInvoice(conn, orderId, exportedAt)
+ODV --> PCtl : 44: doGet(orderId)
+PCtl --> IDAO : 45: getInvoiceByOrder(orderId)
+IDAO --> Inv : 46: new Invoice()
+IDAO --> DDAO : 47: getByOrder(orderId)
+PCtl --> IPV : 48: forward(invoice)
+IPV --> A : 49: hiển thị bản xem trước HD1024\n51: in hóa đơn
+A --> IPV : 50: click subPrint
+@enduml

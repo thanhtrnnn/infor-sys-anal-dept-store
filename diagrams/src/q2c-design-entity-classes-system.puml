@@ -1,0 +1,153 @@
+@startuml
+!include _style.iuml
+title Thiết kế – Biểu đồ lớp thực thể pha thiết kế của HỆ THỐNG
+
+' ---- Nhóm con người ----
+class Member {
+  -id : int
+  -username : String
+  -password : String
+  -fullName : String
+  -email : String
+  -phone : String
+  -address : String
+  -role : String
+  -status : String
+  -createdAt : Date
+}
+class Customer {
+  -code : String
+  -memberSince : Date
+}
+class Staff {
+  -code : String
+  -position : String
+}
+class ManagementStaff
+class SaleStaff
+class DeliveryStaff {
+  -id : int
+  -code : String
+  -fullName : String
+  -phone : String
+  -area : String
+  -status : String
+  -activeOrderCount : int
+}
+
+' ---- Nhóm nhà cung cấp, sản phẩm, nhập hàng ----
+class Supplier {
+  -id : int
+  -code : String
+  -name : String
+  -address : String
+  -phone : String
+  -email : String
+  -status : String
+}
+class ProductCategory {
+  -id : int
+  -name : String
+  -description : String
+}
+class Product {
+  -id : int
+  -code : String
+  -name : String
+  -description : String
+  -unit : String
+  -salePrice : double
+  -stockQuantity : int
+  -status : String
+  -category : ProductCategory
+}
+class ImportReceipt {
+  -id : int
+  -code : String
+  -importDate : Date
+  -totalAmount : double
+  -status : String
+  -note : String
+  -supplier : Supplier
+  -staff : ManagementStaff
+  -details : ImportReceiptDetail[]
+}
+class ImportReceiptDetail {
+  -id : int
+  -quantity : int
+  -unitCost : double
+  -lineAmount : double
+  -product : Product
+}
+
+' ---- Nhóm bán hàng ----
+class Order {
+  -id : int
+  -code : String
+  -orderDate : Date
+  -shippingAddress : String
+  -totalAmount : double
+  -status : String
+  -approvedAt : Date
+  -exportedAt : Date
+  -customer : Customer
+  -saleStaff : SaleStaff
+  -deliveryStaff : DeliveryStaff
+  -details : OrderDetail[]
+}
+class OrderDetail {
+  -id : int
+  -quantity : int
+  -unitPrice : double
+  -lineAmount : double
+  -product : Product
+}
+class Invoice {
+  -id : int
+  -code : String
+  -issueDate : Date
+  -totalAmount : double
+  -order : Order
+}
+
+' ---- Nhóm thống kê: kế thừa thực thể tương ứng ----
+class CustomerStat {
+  -totalOrders : int
+  -totalAmount : double
+}
+class SupplierStat {
+  -totalReceipts : int
+  -totalImportAmount : double
+}
+class ImportStat {
+  -totalImportQuantity : int
+  -totalImportAmount : double
+}
+class ExportStat {
+  -totalExportQuantity : int
+  -totalExportAmount : double
+}
+
+' Kế thừa
+Customer -up-|> Member
+Staff -up-|> Member
+ManagementStaff -up-|> Staff
+SaleStaff -up-|> Staff
+CustomerStat -up-|> Customer
+SupplierStat -up-|> Supplier
+ImportStat -up-|> Product
+ExportStat -up-|> Product
+
+' Bước 3-4: association -> aggregation/composition, lớp chứa giữ thuộc tính đối tượng
+Product "0..*" o-- "1" ProductCategory
+ImportReceipt "0..*" o-- "1" Supplier
+ImportReceipt "0..*" o-- "1" ManagementStaff
+ImportReceipt "1" *-- "1..*" ImportReceiptDetail
+ImportReceiptDetail "0..*" o-- "1" Product
+Order "0..*" o-- "1" Customer
+Order "0..*" o-- "0..1" SaleStaff
+Order "0..*" o-- "0..1" DeliveryStaff
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+Invoice "1" o-- "1" Order
+@enduml

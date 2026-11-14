@@ -1,0 +1,149 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+skinparam SequenceMessageAlign left
+title Thiết kế – Biểu đồ tuần tự thiết kế – Approve and Export Order 0 (86 bước, kịch bản v3)
+
+actor "NV bán hàng" as A
+boundary "gdSaleHome.jsp" as gdSaleHome
+boundary "gdOrderList.jsp" as gdOrderList
+boundary "gdOrderDetail.jsp" as gdOrderDetail
+boundary "doApproveOrder.jsp" as doApproveOrder
+boundary "gdDeliveryStaffList.jsp" as gdDeliveryStaffList
+boundary "doSaveAssign.jsp" as doSaveAssign
+boundary "doExportOrder.jsp" as doExportOrder
+boundary "gdInvoicePrint.jsp" as gdInvoicePrint
+control "OrderDAO" as OrderDAO
+control "OrderDetailDAO" as OrderDetailDAO
+control "DeliveryStaffDAO" as DeliveryStaffDAO
+control "ProductDAO" as ProductDAO
+control "InvoiceDAO" as InvoiceDAO
+entity "Order" as Order
+entity "OrderDetail" as OrderDetail
+entity "DeliveryStaff" as DeliveryStaff
+entity "Invoice" as Invoice
+
+A -> gdSaleHome : 1: click Duyệt và xuất đơn
+gdSaleHome -> gdOrderList : 2: gọi
+gdOrderList --> A : 3: hiển thị
+A -> gdOrderList : 4: chọn Chưa xuất + click Lọc
+gdOrderList -> gdOrderList : 5: submit
+gdOrderList -> OrderDAO : 6: gọi
+OrderDAO -> OrderDAO : 7: getUnexportedOrder()
+OrderDAO -> Order : 8: gọi
+Order -> Order : 9: Order()
+Order --> OrderDAO : 10: trả về
+OrderDAO --> gdOrderList : 11: trả về
+gdOrderList --> A : 12: hiển thị
+A -> gdOrderList : 13: click DH1024
+gdOrderList -> gdOrderDetail : 14: gọi
+gdOrderDetail -> OrderDetailDAO : 15: gọi
+OrderDetailDAO -> OrderDetailDAO : 16: getOrderDetailByOrder(idOrder)
+OrderDetailDAO -> OrderDetail : 17: gọi
+OrderDetail -> OrderDetail : 18: OrderDetail()
+OrderDetail --> OrderDetailDAO : 19: trả về
+OrderDetailDAO --> gdOrderDetail : 20: trả về
+gdOrderDetail --> A : 21: hiển thị
+A -> gdOrderDetail : 22: click Duyệt đơn
+gdOrderDetail -> doApproveOrder : 23: gọi
+doApproveOrder -> Order : 24: gọi
+Order -> Order : 25: setStatus(), setSaleStaff(), setApprovedAt()
+Order --> doApproveOrder : 26: trả về
+doApproveOrder -> OrderDAO : 27: gọi
+OrderDAO -> OrderDAO : 28: approveOrder(order)
+OrderDAO --> doApproveOrder : 29: trả về
+doApproveOrder --> A : 30: thông báo thành công
+A -> doApproveOrder : 31: click OK
+doApproveOrder -> gdOrderDetail : 32: gọi
+gdOrderDetail --> A : 33: hiển thị
+A -> gdOrderDetail : 34: click Chọn NV giao hàng
+gdOrderDetail -> gdDeliveryStaffList : 35: gọi
+gdDeliveryStaffList -> DeliveryStaffDAO : 36: gọi
+DeliveryStaffDAO -> DeliveryStaffDAO : 37: getAvailableDeliveryStaff()
+DeliveryStaffDAO -> DeliveryStaff : 38: gọi
+DeliveryStaff -> DeliveryStaff : 39: DeliveryStaff()
+DeliveryStaff --> DeliveryStaffDAO : 40: trả về
+DeliveryStaffDAO --> gdDeliveryStaffList : 41: trả về
+gdDeliveryStaffList --> A : 42: hiển thị
+A -> gdDeliveryStaffList : 43: chọn GH03 + click Lưu phân công
+gdDeliveryStaffList -> doSaveAssign : 44: gọi
+doSaveAssign -> Order : 45: gọi
+Order -> Order : 46: setDeliveryStaff()
+Order --> doSaveAssign : 47: trả về
+doSaveAssign -> OrderDAO : 48: gọi
+OrderDAO -> OrderDAO : 49: assignDeliveryStaff(order)
+OrderDAO --> doSaveAssign : 50: trả về
+doSaveAssign --> A : 51: thông báo thành công
+A -> doSaveAssign : 52: click OK
+doSaveAssign -> gdOrderDetail : 53: gọi
+gdOrderDetail --> A : 54: hiển thị
+A -> gdOrderDetail : 55: click Xác nhận xuất hàng
+gdOrderDetail -> doExportOrder : 56: gọi
+doExportOrder -> Order : 57: gọi
+Order -> Order : 58: setStatus(), setSaleStaff(), setExportedAt()
+Order --> doExportOrder : 59: trả về
+doExportOrder -> OrderDAO : 60: gọi
+OrderDAO -> OrderDAO : 61: exportOrder(order)
+OrderDAO -> ProductDAO : 62: gọi
+ProductDAO -> ProductDAO : 63: checkStock(listDetail)
+ProductDAO --> OrderDAO : 64: trả về
+OrderDAO -> ProductDAO : 65: gọi
+ProductDAO -> ProductDAO : 66: decreaseStock(listDetail)
+ProductDAO --> OrderDAO : 67: trả về
+OrderDAO -> InvoiceDAO : 68: gọi
+InvoiceDAO -> InvoiceDAO : 69: issueInvoice(order)
+InvoiceDAO --> OrderDAO : 70: trả về
+OrderDAO --> doExportOrder : 71: trả về
+doExportOrder --> A : 72: thông báo thành công
+A -> doExportOrder : 73: click OK
+doExportOrder -> gdOrderDetail : 74: gọi
+gdOrderDetail --> A : 75: hiển thị
+A -> gdOrderDetail : 76: click In hóa đơn
+gdOrderDetail -> gdInvoicePrint : 77: gọi
+gdInvoicePrint -> InvoiceDAO : 78: gọi
+InvoiceDAO -> InvoiceDAO : 79: getInvoiceDetail(idInvoice, idCustomer)
+InvoiceDAO -> Invoice : 80: gọi
+Invoice -> Invoice : 81: Invoice()
+Invoice --> InvoiceDAO : 82: trả về
+InvoiceDAO --> gdInvoicePrint : 83: trả về
+gdInvoicePrint --> A : 84: hiển thị
+A -> gdInvoicePrint : 85: click In
+gdInvoicePrint --> A : 86: in hóa đơn
+@enduml

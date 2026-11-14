@@ -1,0 +1,72 @@
+@startuml
+!include _style.iuml
+left to right direction
+skinparam linetype ortho
+title [Bản cũ – kiến trúc Servlet, đi kèm mã Java thử nghiệm] Thiết kế CSDL (sql/schema.sql)
+
+entity tblCustomer {
+  * customerId : VARCHAR(10) <<PK>>
+  --
+  * fullName : VARCHAR(100)
+  * phone : VARCHAR(15)
+  * address : VARCHAR(255)
+}
+entity tblSaleStaff {
+  * staffId : VARCHAR(10) <<PK>>
+  --
+  * fullName : VARCHAR(100)
+  * position : VARCHAR(50)
+}
+entity tblDeliveryStaff {
+  * deliveryStaffId : VARCHAR(10) <<PK>>
+  --
+  * fullName : VARCHAR(100)
+  * phone : VARCHAR(15)
+  * area : VARCHAR(50)
+  * status : VARCHAR(12) {AVAILABLE, DELIVERING, INACTIVE}
+}
+entity tblOrder {
+  * orderId : VARCHAR(10) <<PK>>
+  --
+  * customerId : VARCHAR(10) <<FK>>
+  saleStaffId : VARCHAR(10) <<FK>>
+  deliveryStaffId : VARCHAR(10) <<FK>>
+  * orderDate : DATETIME
+  * shippingAddress : VARCHAR(255)
+  * totalAmount : BIGINT
+  * status : VARCHAR(12) {PENDING … CANCELLED}
+  approvedAt : DATETIME
+  exportedAt : DATETIME
+}
+entity tblOrderDetail {
+  * orderId : VARCHAR(10) <<PK, FK>>
+  * productId : VARCHAR(10) <<PK, FK>>
+  --
+  * quantity : INT
+  * unitPrice : BIGINT
+  * lineAmount : BIGINT
+}
+entity tblProduct {
+  * productId : VARCHAR(10) <<PK>>
+  --
+  * productName : VARCHAR(150)
+  * unit : VARCHAR(20)
+  * salePrice : BIGINT
+  * stockQuantity : INT  (>= 0)
+  * status : VARCHAR(10)
+}
+entity tblInvoice {
+  * invoiceId : VARCHAR(10) <<PK>>
+  --
+  * orderId : VARCHAR(10) <<FK, UNIQUE>>
+  issueDate : DATETIME
+  * totalAmount : BIGINT
+}
+
+tblCustomer ||--o{ tblOrder
+tblSaleStaff |o--o{ tblOrder
+tblDeliveryStaff |o--o{ tblOrder
+tblOrder ||--|{ tblOrderDetail
+tblProduct ||--o{ tblOrderDetail
+tblOrder ||--|| tblInvoice
+@enduml

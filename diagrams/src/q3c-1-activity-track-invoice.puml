@@ -1,0 +1,29 @@
+@startuml
+!include _style.iuml
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityBorderColor #000000
+skinparam partitionBorderColor #000000
+title Thiết kế – Biểu đồ hoạt động – Module 1: Track Invoice 0
+
+partition "Xử lí tại gdCustomerHome.jsp" {
+  (*) --> "Nhận thông tin KH\n(session)" as H1
+  H1 --> "Hiển thị GD" as H2
+}
+partition "Xử lí tại gdInvoiceList.jsp" {
+  H2 -->[click Theo dõi hóa đơn] "Nhận thông tin KH" as L1
+  L1 --> "Lấy DS hóa đơn của KH" as L2
+  L2 -->[lấy xong dữ liệu] "Hiển thị GD" as L3
+}
+partition "Xử lí tại gdInvoiceDetail.jsp" {
+  L3 -->[click 1 hóa đơn] "Nhận thông tin\nKH + hóa đơn" as D1
+  D1 --> "Lấy chi tiết hóa đơn" as D2
+  D2 -->[hóa đơn thuộc KH] "Hiển thị GD\n(chi tiết + trạng thái)" as D3
+  D2 -->[không thuộc KH] "Thông báo\nkhông tìm thấy hóa đơn" as D4
+}
+L2 .> "InvoiceDAO:\ngetInvoiceByCustomer()" as X1
+D2 .> "InvoiceDAO:\ngetInvoiceDetail()" as X2
+D3 -->[click Quay lại] L1
+D4 -->[click OK] L1
+L3 -->[click Quay lại] H2
+H2 -->[đăng xuất] (*)
+@enduml

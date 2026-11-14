@@ -1,0 +1,64 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+left to right direction
+title Q1a – Use case chi tiết module 2 – Sale staff approves orders + export
+
+actor "System Member" as Member
+actor "Sale Staff" as Sale
+Sale -up-|> Member
+rectangle "Module 2 – Order Approval and Export" {
+  usecase "Login 0" as Login
+  usecase "Sale Staff Login 0" as SLogin
+  usecase "Approve and Export Order 0" as Main
+  usecase "Browse Orders 0" as Browse
+  usecase "View Order Detail 0" as Detail
+  usecase "Assign Delivery Staff 0" as Assign
+  usecase "Print Invoice 0" as Print
+}
+Member -- Login
+Sale -- Main
+SLogin -up-|> Login
+Main ..> SLogin : <<include>>
+Main ..> Browse : <<include>>
+Main ..> Detail : <<include>>
+Main ..> Assign : <<include>>
+Main ..> Print : <<include>>
+@enduml

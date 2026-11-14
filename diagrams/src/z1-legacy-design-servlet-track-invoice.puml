@@ -1,0 +1,77 @@
+@startuml
+!include _style.iuml
+left to right direction
+title [Bản cũ – kiến trúc Servlet, đi kèm mã Java thử nghiệm] Biểu đồ lớp thiết kế chi tiết – Module 1: Track Invoice 0 (MVC – J2EE)
+
+package view {
+  class CustomerHomeView <<JSP>> {
+    -subTrackInvoice: link
+  }
+  class InvoiceListView <<JSP>> {
+    -outsubInvoiceList: table
+  }
+  class InvoiceDetailView <<JSP>> {
+    -outInvoiceInfo: text
+    -outsubItemList: table
+    -outTotalAmount: text
+    -outStatus: text
+    -subBack: button
+  }
+}
+package controller {
+  class InvoiceTrackingController <<Servlet>> {
+    -invoiceDAO: InvoiceDAO
+    +init(): void
+    #doGet(req: HttpServletRequest, resp: HttpServletResponse): void
+  }
+}
+package dao {
+  interface InvoiceDAO {
+    +getInvoicesByCustomer(customerId: String): List<Invoice>
+    +getInvoiceOfCustomer(invoiceId: String, customerId: String): Invoice
+    +getInvoiceByOrder(orderId: String): Invoice
+    +issueInvoice(conn: Connection, orderId: String, issueDate: LocalDateTime): void
+  }
+  interface OrderDetailDAO {
+    +getByOrder(orderId: String): List<OrderDetail>
+  }
+  class DBConnection {
+    +{static} getConnection(): Connection
+  }
+  package impl {
+    class InvoiceDAOImpl {
+      -orderDetailDAO: OrderDetailDAOImpl
+    }
+    class OrderDetailDAOImpl
+  }
+}
+package model {
+  !include _model.iuml
+  class DeliveryStaff <<model>> {
+    -deliveryStaffId: String
+    -fullName: String
+    -phone: String
+  }
+}
+
+CustomerHomeView --> InvoiceTrackingController : doGet
+InvoiceListView --> InvoiceTrackingController : doGet(invoiceId)
+InvoiceTrackingController --> InvoiceListView : forward
+InvoiceTrackingController --> InvoiceDetailView : forward
+InvoiceTrackingController ..> InvoiceDAO : <<use>>
+InvoiceDAOImpl ..|> InvoiceDAO
+OrderDetailDAOImpl ..|> OrderDetailDAO
+InvoiceDAOImpl --> OrderDetailDAOImpl
+InvoiceDAOImpl ..> DBConnection : <<use>>
+OrderDetailDAOImpl ..> DBConnection : <<use>>
+InvoiceDAO ..> Invoice : <<use>>
+InvoiceListView ..> Invoice : <<use>>
+InvoiceDetailView ..> Invoice : <<use>>
+
+Invoice "1" --> "1" Order
+Order "0..*" --> "1" Customer
+Order "0..*" --> "0..1" DeliveryStaff
+Order "1" *--> "1..*" OrderDetail
+OrderDetail "0..*" --> "1" Product
+Order ..> OrderStatus
+@enduml

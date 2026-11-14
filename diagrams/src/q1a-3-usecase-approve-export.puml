@@ -1,0 +1,26 @@
+@startuml
+!include _style.iuml
+left to right direction
+title Q1a – Use case chi tiết module 2 – Sale staff approves orders + export
+
+actor "System Member" as Member
+actor "Sale Staff" as Sale
+Sale -up-|> Member
+rectangle "Module 2 – Order Approval and Export" {
+  usecase "Login 0" as Login
+  usecase "Sale Staff Login 0" as SLogin
+  usecase "Approve and Export Order 0" as Main
+  usecase "Browse Orders 0" as Browse
+  usecase "View Order Detail 0" as Detail
+  usecase "Assign Delivery Staff 0" as Assign
+  usecase "Print Invoice 0" as Print
+}
+Member -- Login
+Sale -- Main
+SLogin -up-|> Login
+Main ..> SLogin : <<include>>
+Main ..> Browse : <<include>>
+Main ..> Detail : <<include>>
+Main ..> Assign : <<include>>
+Main ..> Print : <<include>>
+@enduml

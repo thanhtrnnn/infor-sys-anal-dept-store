@@ -1,0 +1,14 @@
+@startsalt
+title gdDeliveryStaffList.jsp – Chọn nhân viên giao hàng
+{+
+  <b>CHỌN NHÂN VIÊN GIAO HÀNG CHO ĐƠN DH1024
+  ==
+  {#
+    . | <b>Mã NV | <b>Họ tên | <b>Số điện thoại | <b>Khu vực | <b>Số đơn đang giao | <b>Trạng thái
+    (X) | GH03 | Phạm Văn Dũng | 0912345678 | Cầu Giấy | 1 | Sẵn sàng
+    () | GH05 | Ngô Thị Hà | 0987654321 | Đống Đa | 0 | Sẵn sàng
+    () | GH08 | Đỗ Quang Huy | 0933221100 | Hà Đông | 3 | Đang giao
+  }
+  { [Lưu phân công] | [Quay lại] }
+}
+@endsalt

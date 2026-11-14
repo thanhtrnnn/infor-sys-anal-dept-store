@@ -1,0 +1,72 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+skinparam SequenceMessageAlign left
+title Thiết kế – Biểu đồ tuần tự thiết kế – Track Invoice 0 (21 bước, kịch bản v3)
+
+actor "Khách hàng" as A
+boundary "gdCustomerHome.jsp" as gdCustomerHome
+boundary "gdInvoiceList.jsp" as gdInvoiceList
+boundary "gdInvoiceDetail.jsp" as gdInvoiceDetail
+control "InvoiceDAO" as InvoiceDAO
+entity "Invoice" as Invoice
+
+A -> gdCustomerHome : 1: click Theo dõi hóa đơn
+gdCustomerHome -> gdInvoiceList : 2: gọi
+gdInvoiceList -> InvoiceDAO : 3: gọi
+InvoiceDAO -> InvoiceDAO : 4: getInvoiceByCustomer(idCustomer)
+InvoiceDAO -> Invoice : 5: gọi
+Invoice -> Invoice : 6: Invoice()
+Invoice --> InvoiceDAO : 7: trả về
+InvoiceDAO --> gdInvoiceList : 8: trả về
+gdInvoiceList --> A : 9: hiển thị
+A -> gdInvoiceList : 10: click HD1024
+gdInvoiceList -> gdInvoiceDetail : 11: gọi
+gdInvoiceDetail -> InvoiceDAO : 12: gọi
+InvoiceDAO -> InvoiceDAO : 13: getInvoiceDetail(idInvoice, idCustomer)
+InvoiceDAO -> Invoice : 14: gọi
+Invoice -> Invoice : 15: Invoice()
+Invoice --> InvoiceDAO : 16: trả về
+InvoiceDAO --> gdInvoiceDetail : 17: trả về
+gdInvoiceDetail --> A : 18: hiển thị
+A -> gdInvoiceDetail : 19: click Quay lại
+gdInvoiceDetail -> gdInvoiceList : 20: gọi
+gdInvoiceList --> A : 21: hiển thị
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+!include _style.iuml
+title Bổ sung – Biểu đồ trạng thái của Order
+
+[*] --> Pending : khách hàng đặt đơn\n(tạo Invoice chưa lập)
+Pending --> Approved : approve()\n/ lưu nhân viên duyệt, approvedAt
+Pending --> Cancelled : hủy đơn
+Approved --> Approved : assignDelivery()\n/ lưu nhân viên giao hàng
+Approved --> Approved : export() [chưa phân công\nhoặc thiếu tồn kho]\n/ từ chối, giữ nguyên tồn kho
+Approved --> Exported : export() [đã phân công và đủ tồn kho]\n/ trừ tồn kho, lưu exportedAt, lập Invoice
+Approved --> Cancelled : hủy đơn
+Exported --> Delivering : bàn giao hàng + hóa đơn\ncho nhân viên giao hàng
+Delivering --> Delivered : khách hàng nhận hàng
+Delivered --> [*]
+Cancelled --> [*]
+@enduml

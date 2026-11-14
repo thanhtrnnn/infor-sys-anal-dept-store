@@ -1,0 +1,22 @@
+@startuml
+!include _style.iuml
+left to right direction
+title Q1a – Use case chi tiết module 1 – Customer tracks invoice
+
+actor "System Member" as Member
+actor Customer
+Customer -up-|> Member
+rectangle "Module 1 – Invoice Tracking" {
+  usecase "Login 0" as Login
+  usecase "Customer Login 0" as CLogin
+  usecase "Track Invoice 0" as Track
+  usecase "View Ordered Invoice List 0" as List
+  usecase "View Invoice Detail 0" as Detail
+}
+Member -- Login
+Customer -- Track
+CLogin -up-|> Login
+Track ..> CLogin : <<include>>
+Track ..> List : <<include>>
+Detail ..> List : <<extend>>
+@enduml

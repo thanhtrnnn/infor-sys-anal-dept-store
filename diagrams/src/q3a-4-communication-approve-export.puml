@@ -1,0 +1,52 @@
+@startuml
+!include _style.iuml
+left to right direction
+title Q3a – Biểu đồ giao tiếp – kịch bản chuẩn Approve and Export Order 0 (51 bước)
+
+actor "Nhân viên bán hàng" as Actor
+boundary SaleHomeView
+boundary OrderListView
+boundary OrderDetailView
+boundary DeliveryStaffListView
+boundary InvoicePrintView
+entity Order
+entity OrderDetail
+entity DeliveryStaff
+entity Product
+entity Invoice
+
+Actor -- SaleHomeView : 1: click subBrowseOrder >
+SaleHomeView -- OrderListView : 2: gọi >
+Actor -- OrderListView : 3: chọn "Chưa xuất" + click subFilter\n8: click đơn DH1024 >
+OrderListView -- Order : 4: gọi >
+Order -- Order : "5: listUnexported()\n16: approve()\n27: assignDelivery()\n38: export()"
+Order -- OrderListView : 6: trả về >
+OrderListView -- Actor : 7: hiển thị >
+OrderListView -- OrderDetailView : 9: gọi >
+OrderDetailView -- OrderDetail : 10: gọi >
+OrderDetail -- OrderDetail : "11: listByOrder()"
+OrderDetail -- OrderDetailView : 12: trả về >
+OrderDetailView -- Actor : 13: hiển thị\n18: hiển thị\n43: hiển thị thông báo xuất thành công >
+Actor -- OrderDetailView : 14: click subApprove\n19: click subAssignDelivery\n30: click subExport\n44: click subPrintInvoice >
+OrderDetailView -- Order : 15: gọi\n37: gọi >
+Order -- OrderDetailView : 17: trả về\n39: trả về >
+OrderDetailView -- DeliveryStaffListView : 20: gọi >
+DeliveryStaffListView -- DeliveryStaff : 21: gọi >
+DeliveryStaff -- DeliveryStaff : "22: listAvailable()"
+DeliveryStaff -- DeliveryStaffListView : 23: trả về >
+DeliveryStaffListView -- Actor : 24: hiển thị\n29: hiển thị >
+Actor -- DeliveryStaffListView : 25: chọn GH03 + click subSaveAssign >
+DeliveryStaffListView -- Order : 26: gọi >
+Order -- DeliveryStaffListView : 28: trả về >
+OrderDetailView -- Product : 31: gọi\n34: gọi >
+Product -- Product : "32: checkStock()\n35: decreaseStock()"
+Product -- OrderDetailView : 33: trả về\n36: trả về >
+OrderDetailView -- Invoice : 40: gọi >
+Invoice -- Invoice : "41: issue()\n47: getInvoiceDetail()"
+Invoice -- OrderDetailView : 42: trả về >
+OrderDetailView -- InvoicePrintView : 45: gọi >
+InvoicePrintView -- Invoice : 46: gọi >
+Invoice -- InvoicePrintView : 48: trả về >
+InvoicePrintView -- Actor : 49: hiển thị\n51: hiển thị >
+Actor -- InvoicePrintView : 50: click subPrint >
+@enduml

@@ -1,0 +1,103 @@
+@startuml
+' --- Main flow only — no alt blocks ---
+!include _style.iuml
+skinparam SequenceMessageAlign left
+skinparam SequenceLifeLineBackgroundColor #7AD2FF
+skinparam SequenceLifeLineBorderColor #000000
+
+title Bổ sung – Biểu đồ tuần tự phân tích – Approve and Export Order 0 (51 bước, kịch bản v2)
+
+actor "Nhân viên bán hàng" as Actor
+boundary SaleHomeView
+boundary OrderListView
+boundary OrderDetailView
+boundary DeliveryStaffListView
+boundary InvoicePrintView
+entity Order
+entity OrderDetail
+entity DeliveryStaff
+entity Product
+entity Invoice
+
+Actor -> SaleHomeView : 1: click subBrowseOrder
+activate SaleHomeView
+SaleHomeView -> OrderListView : 2: gọi
+activate OrderListView
+Actor -> OrderListView : 3: chọn "Chưa xuất" + click subFilter
+OrderListView -> Order : 4: gọi
+activate Order
+Order -> Order : 5: listUnexported()
+Order --> OrderListView : 6: trả về
+deactivate Order
+OrderListView --> Actor : 7: hiển thị
+Actor -> OrderListView : 8: click đơn DH1024
+OrderListView -> OrderDetailView : 9: gọi
+activate OrderDetailView
+OrderDetailView -> OrderDetail : 10: gọi
+activate OrderDetail
+OrderDetail -> OrderDetail : 11: listByOrder()
+OrderDetail --> OrderDetailView : 12: trả về
+deactivate OrderDetail
+OrderDetailView --> Actor : 13: hiển thị
+Actor -> OrderDetailView : 14: click subApprove
+OrderDetailView -> Order : 15: gọi
+activate Order
+Order -> Order : 16: approve()
+Order --> OrderDetailView : 17: trả về
+deactivate Order
+OrderDetailView --> Actor : 18: hiển thị
+Actor -> OrderDetailView : 19: click subAssignDelivery
+OrderDetailView -> DeliveryStaffListView : 20: gọi
+activate DeliveryStaffListView
+DeliveryStaffListView -> DeliveryStaff : 21: gọi
+activate DeliveryStaff
+DeliveryStaff -> DeliveryStaff : 22: listAvailable()
+DeliveryStaff --> DeliveryStaffListView : 23: trả về
+deactivate DeliveryStaff
+DeliveryStaffListView --> Actor : 24: hiển thị
+Actor -> DeliveryStaffListView : 25: chọn GH03 + click subSaveAssign
+DeliveryStaffListView -> Order : 26: gọi
+activate Order
+Order -> Order : 27: assignDelivery()
+Order --> DeliveryStaffListView : 28: trả về
+deactivate Order
+DeliveryStaffListView --> Actor : 29: hiển thị
+deactivate DeliveryStaffListView
+Actor -> OrderDetailView : 30: click subExport
+OrderDetailView -> Product : 31: gọi
+activate Product
+Product -> Product : 32: checkStock()
+Product --> OrderDetailView : 33: trả về
+deactivate Product
+OrderDetailView -> Product : 34: gọi
+activate Product
+Product -> Product : 35: decreaseStock()
+Product --> OrderDetailView : 36: trả về
+deactivate Product
+OrderDetailView -> Order : 37: gọi
+activate Order
+Order -> Order : 38: export()
+Order --> OrderDetailView : 39: trả về
+deactivate Order
+OrderDetailView -> Invoice : 40: gọi
+activate Invoice
+Invoice -> Invoice : 41: issue()
+Invoice --> OrderDetailView : 42: trả về
+deactivate Invoice
+OrderDetailView --> Actor : 43: hiển thị thông báo xuất thành công
+Actor -> OrderDetailView : 44: click subPrintInvoice
+OrderDetailView -> InvoicePrintView : 45: gọi
+activate InvoicePrintView
+InvoicePrintView -> Invoice : 46: gọi
+activate Invoice
+Invoice -> Invoice : 47: getInvoiceDetail()
+Invoice --> InvoicePrintView : 48: trả về
+deactivate Invoice
+InvoicePrintView --> Actor : 49: hiển thị
+Actor -> InvoicePrintView : 50: click subPrint
+InvoicePrintView --> Actor : 51: hiển thị
+deactivate InvoicePrintView
+deactivate OrderDetailView
+deactivate OrderListView
+deactivate SaleHomeView
+@enduml

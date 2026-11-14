@@ -1,0 +1,94 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+left to right direction
+title Q1a – Biểu đồ use case tổng quan – Online Department Store Management System
+
+actor "System Member" as Member
+actor Customer
+actor "Management Staff" as Manager
+actor "Sale Staff" as Sale
+Customer -|> Member
+Manager -|> Member
+Sale -|> Member
+
+rectangle "Online Department Store Management System" {
+  usecase "Login 0" as Login
+  usecase "Logout 0" as Logout
+  usecase "Change Password 0" as ChangePw
+
+  usecase "Register Member 0" as Register
+  usecase "Search Product 0" as Search
+  usecase "View Product Information 0" as ViewProduct
+  usecase "Place Online Order 0" as PlaceOrder
+  usecase "Track Invoice 0" as Track #FFF3C4
+
+  usecase "Manage Product Information 0" as MProduct
+  usecase "Manage Supplier Information 0" as MSupplier
+  usecase "Import Goods 0" as Import
+  usecase "View Import Statistics 0" as SImp
+  usecase "View Export Statistics 0" as SExp
+  usecase "View Customer Statistics 0" as SCus
+  usecase "View Supplier Statistics 0" as SSup
+
+  usecase "Approve and Export Order 0" as ApproveExport #FFF3C4
+}
+
+Member -- Login
+Member -- Logout
+Member -- ChangePw
+
+Customer -- Register
+Customer -- Search
+Customer -- ViewProduct
+Customer -- PlaceOrder
+Customer -- Track
+
+Manager -- MProduct
+Manager -- MSupplier
+Manager -- Import
+Manager -- SImp
+Manager -- SExp
+Manager -- SCus
+Manager -- SSup
+
+Sale -- ApproveExport
+
+@enduml

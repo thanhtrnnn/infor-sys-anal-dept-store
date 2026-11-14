@@ -1,0 +1,18 @@
+@startsalt
+title gdOrderDetail.jsp – Chi tiết đơn hàng
+{+
+  <b>CHI TIẾT ĐƠN HÀNG DH1024 | Trạng thái: <b>Chờ duyệt</b>
+  ==
+  { Khách hàng: | Nguyễn Văn An – 0905112233 – 25 Trần Duy Hưng, Cầu Giấy, Hà Nội }
+  {#
+    <b>Mã SP | <b>Tên sản phẩm | <b>Đơn vị | <b>Số lượng | <b>Đơn giá | <b>Thành tiền | <b>Tồn kho
+    SP07 | Gạo ST25 5kg | Túi | 2 | 250.000 | 500.000 | 40
+    SP15 | Dầu ăn Neptune 1L | Chai | 5 | 60.000 | 300.000 | 120
+    SP22 | Sữa tươi Vinamilk 1L | Hộp | 10 | 45.000 | 450.000 | 60
+    . | <b>Tổng tiền | . | . | . | <b>1.250.000 | .
+  }
+  { Nhân viên giao hàng: | <i>(chưa phân công)</i> }
+  { Thông báo: | <i>(hiện kết quả duyệt / xuất)</i> }
+  { [Duyệt đơn] | [Chọn NV giao hàng] | [Xác nhận xuất hàng] | [In hóa đơn] | [Quay lại] }
+}
+@endsalt

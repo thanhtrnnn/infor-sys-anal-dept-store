@@ -1,0 +1,19 @@
+@startsalt
+title gdInvoicePrint.jsp – Xem trước và in hóa đơn
+{+
+  <b>HÓA ĐƠN BÁN HÀNG HD1024
+  ==
+  {
+    Khách hàng: | Nguyễn Văn An | Ngày lập: | 06/09/2026
+    Địa chỉ nhận: | 25 Trần Duy Hưng, Cầu Giấy, Hà Nội | Mã đơn: | DH1024
+  }
+  {#
+    <b>Mã SP | <b>Tên sản phẩm | <b>Số lượng | <b>Đơn giá | <b>Thành tiền
+    SP07 | Gạo ST25 5kg | 2 | 250.000 | 500.000
+    SP15 | Dầu ăn Neptune 1L | 5 | 60.000 | 300.000
+    SP22 | Sữa tươi Vinamilk 1L | 10 | 45.000 | 450.000
+    . | <b>Tổng tiền hóa đơn | . | . | <b>1.250.000
+  }
+  { [In] | [Quay lại] }
+}
+@endsalt

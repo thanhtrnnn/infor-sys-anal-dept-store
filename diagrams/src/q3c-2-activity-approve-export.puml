@@ -1,0 +1,63 @@
+@startuml
+!include _style.iuml
+skinparam activityBackgroundColor #FFFFFF
+skinparam activityBorderColor #000000
+skinparam partitionBorderColor #000000
+title Thiết kế – Biểu đồ hoạt động – Module 2: Approve and Export Order 0
+
+partition "Xử lí tại gdSaleHome.jsp" {
+  (*) --> "Nhận thông tin NV\n(session)" as H1
+  H1 --> "Hiển thị GD" as H2
+}
+partition "Xử lí tại gdOrderList.jsp" {
+  H2 -->[click Duyệt và xuất đơn] "Hiển thị GD lọc" as L0
+  L0 -->[chọn Chưa xuất + Lọc] "Lấy DS đơn chưa xuất" as L1
+  L1 -->[lấy xong dữ liệu] "Hiển thị GD" as L2
+}
+partition "Xử lí tại gdOrderDetail.jsp" {
+  L2 -->[click 1 đơn] "Nhận thông tin đơn" as D1
+  D1 --> "Lấy các dòng hàng" as D2
+  D2 -->[lấy xong dữ liệu] "Hiển thị GD" as D3
+}
+partition "Xử lí tại doApproveOrder.jsp" {
+  D3 -->[click Duyệt đơn] "Set trạng thái, NV duyệt" as A1
+  A1 --> "Lưu duyệt đơn" as A2
+  A2 -->[lưu xong] "Thông báo thành công" as A3
+}
+partition "Xử lí tại gdDeliveryStaffList.jsp" {
+  D3 -->[click Chọn NV giao hàng] "Lấy DS NV giao hàng" as G1
+  G1 -->[lấy xong dữ liệu] "Hiển thị GD" as G2
+}
+partition "Xử lí tại doSaveAssign.jsp" {
+  G2 -->[chọn NV + Lưu phân công] "Set NV giao hàng" as S1
+  S1 --> "Lưu phân công" as S2
+  S2 -->[lưu xong] "Thông báo thành công" as S3
+}
+partition "Xử lí tại doExportOrder.jsp" {
+  D3 -->[click Xác nhận xuất hàng] "Set trạng thái Đã xuất,\nthời điểm xuất" as E1
+  E1 --> "Xuất đơn (1 giao dịch):\nkiểm tra + trừ tồn kho,\nlập hóa đơn" as E2
+  E2 -->[thành công] "Thông báo xuất thành công" as E3
+  E2 -->[thiếu hàng / đã xuất /\nchưa phân công] "Rollback,\nthông báo lỗi" as E4
+}
+partition "Xử lí tại gdInvoicePrint.jsp" {
+  D3 -->[click In hóa đơn] "Lấy dữ liệu hóa đơn" as P1
+  P1 -->[lấy xong dữ liệu] "Hiển thị GD" as P2
+  P2 -->[click In] "In hóa đơn" as P3
+}
+L1 .> "OrderDAO:\ngetUnexportedOrder()" as X1
+D2 .> "OrderDetailDAO:\ngetOrderDetailByOrder()" as X2
+A2 .> "OrderDAO:\napproveOrder()" as X3
+G1 .> "DeliveryStaffDAO:\ngetAvailableDeliveryStaff()" as X4
+S2 .> "OrderDAO:\nassignDeliveryStaff()" as X5
+E2 .> "OrderDAO: exportOrder()\nProductDAO: checkStock(), decreaseStock()\nInvoiceDAO: issueInvoice()" as X6
+P1 .> "InvoiceDAO:\ngetInvoiceDetail()" as X7
+A3 -->[click OK] D1
+S3 -->[click OK] D1
+E3 -->[click OK] D1
+E4 -->[click OK] D1
+G2 -->[click Quay lại] D3
+P2 -->[click Quay lại] D3
+D3 -->[click Quay lại] L2
+L2 -->[click Quay lại] H2
+P3 --> (*)
+@enduml

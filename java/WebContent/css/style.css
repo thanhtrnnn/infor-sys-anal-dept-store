@@ -1,0 +1,22 @@
+/* Giao diện chung cho mọi trang JSP (chỉ trình bày, không đổi cấu trúc trang) */
+:root { --ink: #1f2933; --muted: #52606d; --line: #d9e2ec; --bg: #f5f7fa; --accent: #1f6feb; --accent-ink: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0 auto; max-width: 980px; padding: 28px 24px 48px; background: var(--bg); color: var(--ink);
+       font: 15px/1.55 "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+h2 { margin: 0 0 18px; padding-bottom: 10px; border-bottom: 3px solid var(--accent); font-size: 22px; letter-spacing: .3px; }
+p { margin: 8px 0; }
+a { color: var(--accent); font-weight: 600; text-decoration: none; }
+a:hover { text-decoration: underline; }
+table { width: 100%; border-collapse: collapse; margin: 14px 0 18px; background: #fff; border: 1px solid var(--line); }
+th, td { padding: 9px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: #e8eef5; font-weight: 600; color: var(--ink); }
+tr:nth-child(even) td { background: #fafbfc; }
+form { margin: 10px 0; }
+input[type=text], input[type=password], select { padding: 7px 10px; margin: 4px 8px 8px 0; border: 1px solid #bcccdc;
+       border-radius: 6px; font: inherit; min-width: 220px; background: #fff; }
+input[type=submit], button { padding: 8px 16px; margin: 6px 6px 6px 0; border: 1px solid var(--accent); border-radius: 6px;
+       background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
+button { background: #fff; color: var(--accent); }
+input[type=submit]:hover, button:hover { filter: brightness(.94); }
+input[type=radio] { transform: scale(1.15); margin-right: 6px; }
+@media print { body { background: #fff; max-width: none; } button, input[type=submit] { display: none; } }

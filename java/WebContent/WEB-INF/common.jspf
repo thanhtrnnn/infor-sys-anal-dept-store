@@ -1,0 +1,16 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Hàm dùng chung cho mọi trang (include tĩnh): định dạng tiền và ngày theo kiểu Việt Nam --%>
+<%!
+    String vnd(double x) {
+        return String.format("%,.0f", x).replace(',', '.');
+    }
+    String day(java.util.Date d) {
+        return d == null ? "Chưa lập" : new java.text.SimpleDateFormat("dd/MM/yyyy").format(d);
+    }
+    String time(java.util.Date d) {
+        return d == null ? "" : new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(d);
+    }
+    String js(String s) {
+        return s.replace("\\", "\\\\").replace("'", "\\'");
+    }
+%>

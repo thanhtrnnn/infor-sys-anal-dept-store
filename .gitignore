@@ -1,0 +1,14 @@
+# Reports and course artifacts are handed in separately, not versioned here
+*.docx
+source/
+versions/
+submission_ready/
+legacy/
+cnpm-skill-nuances.md
+REVIEW_BG_CNPM_2020.md
+DANH_GIA_DIEM.md
+# Local tooling
+__pycache__/
+.playwright-mcp/
+.DS_Store
+*.class

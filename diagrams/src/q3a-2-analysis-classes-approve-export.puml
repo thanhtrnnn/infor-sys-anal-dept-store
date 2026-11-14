@@ -1,0 +1,124 @@
+@startuml
+!include _style.iuml
+title Q3a – Biểu đồ lớp phân tích – Module 2: Approve and Export Order 0
+
+' Hàng trên: các lớp biên theo thứ tự giao diện
+class SaleHomeView {
+  -subBrowseOrder
+}
+class OrderListView {
+  -inStatusFilter
+  -subFilter
+  -outsubOrderList
+  -subBack
+}
+class OrderDetailView {
+  -outCustomerInfo
+  -outsubOrderItemList
+  -outTotalAmount
+  -outStatus
+  -subApprove
+  -subAssignDelivery
+  -subExport
+  -subPrintInvoice
+  -subBack
+}
+class DeliveryStaffListView {
+  -outsubDeliveryStaffList
+  -subSaveAssign
+  -subBack
+}
+class InvoicePrintView {
+  -outInvoiceInfo
+  -outsubInvoiceItemList
+  -outTotalAmount
+  -subPrint
+  -subBack
+}
+SaleHomeView - OrderListView
+OrderListView - OrderDetailView
+OrderDetailView - DeliveryStaffListView
+DeliveryStaffListView -[hidden]- InvoicePrintView
+OrderDetailView -- InvoicePrintView
+
+' Hàng dưới: các lớp thực thể, giữ nguyên quan hệ của biểu đồ thực thể (Q2b)
+class Order {
+  -code
+  -orderDate
+  -shippingAddress
+  -totalAmount
+  -status
+  -approvedAt
+  -exportedAt
+  +listUnexported()
+  +approve()
+  +assignDelivery()
+  +export()
+}
+class OrderDetail {
+  -quantity
+  -unitPrice
+  -lineAmount
+  +listByOrder()
+}
+class Product {
+  -code
+  -productName
+  -unit
+  -salePrice
+  -stockQuantity
+  -status
+  +checkStock()
+  +decreaseStock()
+}
+class DeliveryStaff {
+  -code
+  -fullName
+  -phone
+  -area
+  -status
+  +listAvailable()
+}
+class Invoice {
+  -code
+  -issueDate
+  -totalAmount
+  +issue()
+  +getInvoiceDetail()
+}
+class Member {
+  -username
+  -password
+  -fullName
+  -email
+  -phone
+  -address
+}
+class Customer {
+  -code
+}
+class Staff {
+  -code
+  -position
+}
+class SaleStaff
+
+OrderListView -- Order
+OrderDetailView -- Order
+OrderDetailView -- OrderDetail
+OrderDetailView -- Product
+OrderDetailView -- Invoice
+DeliveryStaffListView -- DeliveryStaff
+DeliveryStaffListView -- Order
+InvoicePrintView -- Invoice
+
+Customer "1" -- "0..*" Order
+SaleStaff "0..1" -- "0..*" Order
+DeliveryStaff "0..1" -- "0..*" Order
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+Order "1" -- "1" Invoice
+Customer -up-|> Member
+Staff -up-|> Member
+SaleStaff -up-|> Staff
+@enduml

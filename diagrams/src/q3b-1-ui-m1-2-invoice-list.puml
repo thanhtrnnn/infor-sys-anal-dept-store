@@ -1,0 +1,14 @@
+@startsalt
+title gdInvoiceList.jsp – Danh sách hóa đơn
+{+
+  <b>THEO DÕI HÓA ĐƠN | Khách hàng: Nguyễn Văn An (KH01)
+  ==
+  {#
+    <b>Mã HĐ | <b>Mã đơn | <b>Ngày đặt | <b>Số mặt hàng | <b>Tổng tiền | <b>Trạng thái
+    <u>HD1024</u> | DH1024 | 05/09/2026 | 3 | 1.250.000 | Đã xuất
+    <u>HD1011</u> | DH1011 | 01/09/2026 | 1 | 175.000 | Đã hủy
+    <u>HD0987</u> | DH0987 | 20/08/2026 | 1 | 540.000 | Đã giao
+  }
+  [Quay lại]
+}
+@endsalt

@@ -1,0 +1,10 @@
+@startsalt
+title gdSaleHome.jsp – Giao diện chính nhân viên bán hàng
+{+
+  <b>CỬA HÀNG BÁCH HÓA TRỰC TUYẾN | Nhân viên: <b>Hoàng Thị Lan</b> (NV01) | [Đăng xuất]
+  ==
+  {
+    [<b>Duyệt và xuất đơn hàng</b>] | [Đổi mật khẩu]
+  }
+}
+@endsalt

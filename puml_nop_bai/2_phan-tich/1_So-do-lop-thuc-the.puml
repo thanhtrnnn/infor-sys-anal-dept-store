@@ -1,0 +1,104 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+left to right direction
+title Q2b – Biểu đồ lớp thực thể – hai module (Track Invoice 0 + Approve and Export Order 0)
+
+class Member {
+  -username
+  -password
+  -fullName
+  -email
+  -phone
+  -address
+}
+class Customer {
+  -code
+}
+class Staff {
+  -code
+  -position
+}
+class SaleStaff
+class DeliveryStaff {
+  -code
+  -fullName
+  -phone
+  -area
+  -status
+}
+class Order {
+  -code
+  -orderDate
+  -shippingAddress
+  -totalAmount
+  -status
+  -approvedAt
+  -exportedAt
+}
+class OrderDetail {
+  -quantity
+  -unitPrice
+  -lineAmount
+}
+class Product {
+  -code
+  -productName
+  -unit
+  -salePrice
+  -stockQuantity
+  -status
+}
+class Invoice {
+  -code
+  -issueDate
+  -totalAmount
+}
+
+Customer "1" -- "0..*" Order : đặt >
+SaleStaff "0..1" -- "0..*" Order : duyệt và xuất >
+DeliveryStaff "0..1" -- "0..*" Order : được phân công >
+Order "1" *-- "1..*" OrderDetail
+OrderDetail "0..*" o-- "1" Product
+Order "1" -- "1" Invoice : có >
+Customer -up-|> Member
+Staff -up-|> Member
+SaleStaff -up-|> Staff
+@enduml

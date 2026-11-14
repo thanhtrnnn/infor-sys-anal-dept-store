@@ -1,0 +1,40 @@
+@startuml
+!include _style.iuml
+skinparam SequenceMessageAlign left
+skinparam SequenceLifeLineBackgroundColor #7AD2FF
+skinparam SequenceLifeLineBorderColor #000000
+
+title Bổ sung – Biểu đồ tuần tự phân tích – Track Invoice 0 (15 bước, kịch bản v2)
+
+actor "Khách hàng" as Actor
+boundary CustomerHomeView
+boundary InvoiceListView
+boundary InvoiceDetailView
+entity Invoice
+
+Actor -> CustomerHomeView : 1: click subTrackInvoice
+activate CustomerHomeView
+CustomerHomeView -> InvoiceListView : 2: gọi
+activate InvoiceListView
+InvoiceListView -> Invoice : 3: gọi
+activate Invoice
+Invoice -> Invoice : 4: getInvoiceByCustomer()
+Invoice --> InvoiceListView : 5: trả về
+deactivate Invoice
+InvoiceListView --> Actor : 6: hiển thị
+Actor -> InvoiceListView : 7: click hóa đơn HD1024
+InvoiceListView -> InvoiceDetailView : 8: gọi
+activate InvoiceDetailView
+InvoiceDetailView -> Invoice : 9: gọi
+activate Invoice
+Invoice -> Invoice : 10: getInvoiceDetail()
+Invoice --> InvoiceDetailView : 11: trả về
+deactivate Invoice
+InvoiceDetailView --> Actor : 12: hiển thị
+Actor -> InvoiceDetailView : 13: click subBack
+InvoiceDetailView -> InvoiceListView : 14: gọi
+deactivate InvoiceDetailView
+InvoiceListView --> Actor : 15: hiển thị
+deactivate InvoiceListView
+deactivate CustomerHomeView
+@enduml

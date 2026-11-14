@@ -1,0 +1,23 @@
+@startuml
+!include _style.iuml
+title Bổ sung – Biểu đồ trạng thái (luồng giao diện) – Approve and Export Order 0
+
+state "Hiển thị GD chính NV bán hàng" as Home
+state "Hiển thị GD danh sách đơn hàng" as List
+state "Hiển thị GD chi tiết đơn hàng" as Detail
+state "Hiển thị GD chọn NV giao hàng" as Delivery
+state "Hiển thị GD in hóa đơn" as Print
+
+[*] --> Home : Bắt đầu\n(đăng nhập thành công)
+Home --> List : [chọn duyệt và xuất đơn]
+List --> List : [chọn "Chưa xuất" + lọc]
+List --> Detail : [chọn 1 đơn]
+Detail --> Detail : [duyệt đơn]\n[xác nhận xuất]
+Detail --> Delivery : [chọn NV giao hàng]
+Delivery --> Detail : [lưu phân công]\n[quay lại]
+Detail --> Print : [in hóa đơn]
+Print --> [*] : [in]\nKết thúc
+Print --> Detail : [quay lại]
+Detail --> List : [quay lại]
+List --> Home : [quay lại]
+@enduml

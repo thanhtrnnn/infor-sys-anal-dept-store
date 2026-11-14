@@ -1,0 +1,29 @@
+@startuml
+!include _style.iuml
+title Q5a – Biểu đồ gói cho các lớp của Q3b (giáo trình mục 4.3.3: view tách theo actor, dao, model)
+
+package "view" {
+  package "thanhvien" as vtv {
+    class "gdLogin.jsp\ndoLogin.jsp" as TV
+  }
+  package "khachhang" as vkh {
+    class "gdCustomerHome.jsp\ngdInvoiceList.jsp\ngdInvoiceDetail.jsp" as KH
+  }
+  package "nhanvienbanhang" as vbh {
+    class "gdSaleHome.jsp\ngdOrderList.jsp\ngdOrderDetail.jsp\ngdDeliveryStaffList.jsp\ngdInvoicePrint.jsp\ndoApproveOrder.jsp\ndoSaveAssign.jsp\ndoExportOrder.jsp" as BH
+  }
+}
+package "dao" {
+  class "DAO\nMemberDAO\nInvoiceDAO\nOrderDAO\nOrderDetailDAO\nProductDAO\nDeliveryStaffDAO" as D
+}
+package "model" {
+  class "Member, Customer, Staff, SaleStaff\nOrder, OrderDetail, Product\nDeliveryStaff, Invoice" as M
+}
+hide TV circle
+hide KH circle
+hide BH circle
+hide D circle
+hide M circle
+view -- dao
+dao -- model
+@enduml

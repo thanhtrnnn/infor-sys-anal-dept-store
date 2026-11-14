@@ -1,0 +1,15 @@
+@startsalt
+title gdOrderList.jsp – Danh sách đơn hàng
+{+
+  <b>DANH SÁCH ĐƠN HÀNG
+  ==
+  { Trạng thái: | ^Chưa xuất^ | [Lọc] }
+  {#
+    <b>Mã đơn | <b>Khách hàng | <b>Ngày đặt | <b>Số mặt hàng | <b>Tổng tiền | <b>Trạng thái
+    <u>DH1024</u> | Nguyễn Văn An | 05/09/2026 | 3 | 1.250.000 | Chờ duyệt
+    <u>DH1025</u> | Trần Thị Bích | 05/09/2026 | 1 | 320.000 | Chờ duyệt
+    <u>DH1026</u> | Lê Minh Cường | 06/09/2026 | 2 | 780.000 | Đã duyệt
+  }
+  [Quay lại]
+}
+@endsalt

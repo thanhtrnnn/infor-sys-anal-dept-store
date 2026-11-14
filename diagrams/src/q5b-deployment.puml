@@ -1,0 +1,35 @@
+@startuml
+!include _style.iuml
+left to right direction
+title Q5b – Biểu đồ triển khai – mô hình MVC trên J2EE (JSP + DAO)
+
+node "Máy khách (PC / điện thoại)\n<<device>>" as client {
+  node "Trình duyệt web\n<<execution environment>>" as browser {
+    artifact "HTML / CSS / JS\n(trang do JSP sinh ra)" as html
+  }
+}
+node "Máy in hóa đơn\n<<device>>" as printer
+
+node "Web Server\n<<device>>" as server {
+  node "Apache Tomcat 10+ (Jakarta EE / J2EE web container)\n<<execution environment>>" as tomcat {
+    artifact "deptstore.war" as war {
+      component "View\ngdLogin.jsp, khachhang/gd*.jsp,\nnhanvienbanhang/gd*.jsp" as viewc
+      component "Controller\nnhanvienbanhang/do*.jsp, doLogin.jsp\n+ WEB-INF/classes/dao (DAO, XxxDAO)" as ctlc
+      component "Model\nWEB-INF/classes/model\n(Order, Invoice, ...)" as modelc
+      artifact "WEB-INF/lib/\nmysql-connector-j.jar" as driver
+    }
+  }
+}
+node "Database Server\n<<device>>" as dbserver {
+  node "MySQL 8\n<<execution environment>>" as mysql {
+    database "deptstore\n(11 bảng tbl*)" as db
+  }
+}
+
+client -- server : 1: HTTP/HTTPS (port 8080/443)
+server -- dbserver : 2: JDBC / TCP 3306
+client -- printer : 3: in hóa đơn\n(window.print())
+viewc ..> ctlc : submit form
+ctlc ..> modelc : đóng gói thực thể
+ctlc ..> driver : JDBC
+@enduml

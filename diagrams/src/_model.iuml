@@ -1,0 +1,54 @@
+' Model classes shared by both design class diagrams (getters/setters omitted – every attribute has one).
+class Customer <<model>> {
+  -customerId: String
+  -fullName: String
+  -phone: String
+  -address: String
+}
+class Order <<model>> {
+  -orderId: String
+  -customer: Customer
+  -orderDate: LocalDateTime
+  -shippingAddress: String
+  -totalAmount: long
+  -status: OrderStatus
+  -saleStaff: SaleStaff
+  -deliveryStaff: DeliveryStaff
+  -approvedAt: LocalDateTime
+  -exportedAt: LocalDateTime
+  -details: List<OrderDetail>
+  -itemCount: int
+  +getItemCount(): int
+}
+class OrderDetail <<model>> {
+  -product: Product
+  -quantity: int
+  -unitPrice: long
+  -lineAmount: long
+}
+class Product <<model>> {
+  -productId: String
+  -productName: String
+  -unit: String
+  -salePrice: long
+  -stockQuantity: int
+  -status: String
+}
+class Invoice <<model>> {
+  -invoiceId: String
+  -order: Order
+  -issueDate: LocalDateTime
+  -totalAmount: long
+  +getStatus(): OrderStatus
+  +isIssued(): boolean
+}
+enum OrderStatus {
+  PENDING
+  APPROVED
+  EXPORTED
+  DELIVERING
+  DELIVERED
+  CANCELLED
+  +getLabel(): String
+  +isUnexported(): boolean
+}
