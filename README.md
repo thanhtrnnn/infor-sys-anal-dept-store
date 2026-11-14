@@ -20,6 +20,7 @@ The Word reports (`*.docx`), `source/`, `versions/`, `submission_ready/` and `le
 | Path | What it is |
 |---|---|
 | [answer.md](answer.md) | **The answer, Q1a → Q5b** (Vietnamese, like the original report) |
+| `34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx` (local, also PDF in `submission_ready/Ban_cuoi/`) | **Final report**, in the four parts the course asks for: PHẦN I Đặc tả, II Phân tích, III Thiết kế, IV Lập trình (incl. 8.4 screens of the running app, 8.5 project tree in VS Code, 8.6 this repository) + Phụ lục A versions, B replaced figures, C prompts used and how each result was used. Built by [build_full_docx.py](build_full_docx.py) |
 | [34_B23DCAT280_v6_2026-10-27_tong-hop.docx](34_B23DCAT280_v6_2026-10-27_tong-hop.docx) | **Consolidated report (all versions):** v5 content + table of contents + Phụ lục A version history + Phụ lục B figures replaced in earlier versions. Built by [build_full_docx.py](build_full_docx.py). Uploaded to Google Docs: [B23DCAT280 - CNPM / 34_B23DCAT280_v6_2026-10-27_tong-hop](https://docs.google.com/document/d/1X3uv9500OozkGKmP_BlwAG16rolcmET7Dj6WA3Jn3z0/edit) (private, personal Drive) |
 | [34_B23DCAT280_v5_2026-10-26_day-du.docx](34_B23DCAT280_v5_2026-10-26_day-du.docx) | Latest full report: analysis (1–6), design (7), implementation (8). Built by [build_docx.py](build_docx.py) from the v3 original |
 | [versions/](versions/) | Earlier versions with distinct names: v1, v2 (cnpm-hrm git history), v4 (12/10 full report). v3 is in `source/`, v4/v5 design submissions in `submission_ready/` |
@@ -46,7 +47,7 @@ python3 export_diagrams.py -f png q3  # only PNG, only sources starting with "q3
 python3 export_diagrams.py --check    # syntax check only
 python3 verify.py                     # SQL + Java + scenario replay + PlantUML check
 uv run --no-project --with python-docx --with pillow python3 build_docx.py        # v5 report + submission_ready/Thiet_ke_3
-uv run --no-project --with python-docx --with pillow python3 build_full_docx.py   # v6 consolidated report (run after build_docx.py)
+uv run --no-project --with python-docx --with pillow python3 build_full_docx.py   # v7 final report (run after build_docx.py; needs local prompts_appendix.json)
 ```
 
 Needs Python 3.9+ and Java 17+. Graphviz (`dot`) is used if installed; otherwise PlantUML's built-in Smetana layout is used. On first run, PlantUML 1.2026.8 is downloaded to `~/.cache/plantuml/`, and the test jars (sqlite-jdbc, slf4j, JUnit console, embedded Tomcat 11 + Jasper + ECJ) to `~/.cache/txthanh-verify/`. `--jar` or `$PLANTUML_JAR` selects a different PlantUML jar.

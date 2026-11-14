@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Build the consolidated report: every version collected into one document.
+"""Build the final report: v5 content regrouped into the four parts the course asks for, plus everything else.
 
 Input : 34_B23DCAT280_v5_2026-10-26_day-du.docx (latest full report, from build_docx.py)
         source/vp_images/*.png (figures of v1-v3 that later versions replaced)
-Output: 34_B23DCAT280_v6_2026-10-27_tong-hop.docx
-        = v5 + table of contents (Word TOC field, links to heading bookmarks) + Phụ lục A (version history)
-          + Phụ lục B (figures replaced in later versions)
+        screenshots/app/*.png (screens of the running app), screenshots/editor-*.png (project tree in VS Code)
+        prompts_appendix.json (prompts used, for Phụ lục C; kept local, not in git)
+Output: 34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx
+        = PHẦN I Đặc tả (1-4, 5.1-5.6, 6.1-6.5) · PHẦN II Phân tích (5.7-5.10, 6.6-6.9) · PHẦN III Thiết kế (7)
+          · PHẦN IV Lập trình (8 + 8.4 screens, 8.5 project tree, 8.6 GitHub) + table of contents
+          + Phụ lục A (version history) + Phụ lục B (replaced figures) + Phụ lục C (prompts and how they were used)
 
 Run: uv run --no-project --with python-docx --with pillow python3 build_full_docx.py
 """
-import copy
+import json
 from pathlib import Path
 
 import docx
@@ -22,7 +25,10 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "34_B23DCAT280_v5_2026-10-26_day-du.docx"
-OUT = ROOT / "34_B23DCAT280_v6_2026-10-27_tong-hop.docx"
+OUT = ROOT / "34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx"
+SHOTS = ROOT / "screenshots"
+PROMPTS = ROOT / "prompts_appendix.json"
+GITHUB = "https://github.com/thanhtrnnn/infor-sys-anal-dept-store"
 OLD_FIGS = ROOT / "source" / "vp_images"
 
 VERSIONS = [
@@ -48,6 +54,9 @@ VERSIONS = [
     ["v6", "27/10/2026", "TXTHANH\n34_B23DCAT280_v6_2026-10-27_tong-hop.docx",
      "Bản tổng hợp: nội dung v5, mục lục, lịch sử phiên bản (phụ lục A) và các hình của phiên bản trước đã được "
      "thay thế (phụ lục B)."],
+    ["v7", "14/11/2026", "TXTHANH\n34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx\n" + "github.com/thanhtrnnn/infor-sys-anal-dept-store",
+     "Bản cuối: chia thành 4 phần Đặc tả / Phân tích / Thiết kế / Lập trình; thêm ảnh giao diện chạy thật (8.4), "
+     "ảnh cấu trúc project trong editor (8.5), link mã nguồn GitHub (8.6), phụ lục C các prompt đã dùng."],
 ]
 
 OLD_FIGURES = [
@@ -120,6 +129,10 @@ def add_heading(text, level):
 def table(rows, widths):
     t = d.add_table(rows=len(rows), cols=len(rows[0]))
     t.style = "Table Grid"
+    t.autofit = False
+    grid = t._tbl.tblGrid
+    for c, gc in enumerate(grid.findall(qn("w:gridCol"))):
+        gc.set(qn("w:w"), str(int(widths[c] * 567)))
     for r, row in enumerate(rows):
         for c, value in enumerate(row):
             cell = t.cell(r, c)
@@ -141,6 +154,95 @@ def picture(path, caption):
     new_par(text=caption, italic=True, center=True, size=10)
 
 
+# ---------- 0. regroup v5 into the four parts ----------
+def heading_text(e):
+    if not e.tag.endswith("}p"):
+        return None, ""
+    p = Paragraph(e, d)
+    return p.style.name, p.text.strip()
+
+
+def part_heading(text, level=1):
+    p = add_heading(text, level)
+    body.remove(p._p)
+    return p._p
+
+
+kids = [k for k in body.iterchildren() if not k.tag.endswith("}sectPr")]
+starts = {}
+for i, k in enumerate(kids):
+    style, text = heading_text(k)
+    for key in ("1.", "5.", "5.7.", "6.", "6.6.", "7.", "8."):
+        if style in ("Heading 1", "Heading 2") and text.startswith(key + " "):
+            starts[key] = i
+order = ["1.", "5.", "5.7.", "6.", "6.6.", "7.", "8."]
+cut = [starts[k] for k in order] + [len(kids)]
+seg = {k: kids[cut[n]:cut[n + 1]] for n, k in enumerate(order)}
+for k in kids[starts["1."]:]:
+    body.remove(k)
+sect = body.find(qn("w:sectPr"))
+
+
+def put(elements):
+    for e in elements:
+        sect.addprevious(e)
+
+
+put([part_heading("PHẦN I. ĐẶC TẢ")])
+put(seg["1."] + seg["5."] + seg["6."])
+put([page_break()._p, part_heading("PHẦN II. PHÂN TÍCH")])
+put([part_heading("Phân tích module 1 - Customer tracks invoice (tiếp mục 5)")] + seg["5.7."])
+put([part_heading("Phân tích module 2 - Sale staff approves orders + export (tiếp mục 6)")] + seg["6.6."])
+put([page_break()._p, part_heading("PHẦN III. THIẾT KẾ")])
+put(seg["7."])
+put([page_break()._p, part_heading("PHẦN IV. LẬP TRÌNH")])
+put(seg["8."])
+# ---------- 0b. PHẦN IV additions: screens, project tree, GitHub ----------
+APP = [
+    ("01-gdLogin", "gdLogin.jsp - đăng nhập (nhân viên bán hàng lan / 123456)"),
+    ("02-gdSaleHome", "gdSaleHome.jsp - trang chủ nhân viên bán hàng NV01 Hoàng Thị Lan"),
+    ("03-gdOrderList", "gdOrderList.jsp - danh sách đơn chưa xuất (DH1024, DH1025, DH1026)"),
+    ("04-gdOrderDetail-cho-duyet", "gdOrderDetail.jsp - chi tiết đơn DH1024 trạng thái Chờ duyệt, tồn kho 40/120/60"),
+    ("05-gdOrderDetail-da-duyet", "Sau khi bấm Duyệt đơn: thông báo \"Duyệt đơn thành công\", trạng thái Đã duyệt"),
+    ("06-gdDeliveryStaffList", "gdDeliveryStaffList.jsp - chọn nhân viên giao hàng GH03 Phạm Văn Dũng"),
+    ("07-gdOrderDetail-da-xuat", "Sau khi lưu phân công và xác nhận xuất hàng: thông báo \"Xuất hàng thành công cho đơn "
+     "DH1024\", trạng thái Đã xuất, tồn kho giảm còn 38/115/50"),
+    ("08-gdInvoicePrint", "gdInvoicePrint.jsp - hóa đơn bán hàng HD1024 để in và giao cùng hàng"),
+    ("09-gdCustomerHome", "gdCustomerHome.jsp - trang chủ khách hàng KH01 Nguyễn Văn An (an / 123456)"),
+    ("10-gdInvoiceList", "gdInvoiceList.jsp - danh sách hóa đơn đã đặt, mới nhất trước"),
+    ("11-gdInvoiceDetail", "gdInvoiceDetail.jsp - chi tiết hóa đơn HD1024 và trạng thái hiện tại Đã xuất"),
+]
+add_heading("8.4. Giao diện chương trình khi chạy", 2)
+new_par(text="Các ảnh chụp từ ứng dụng chạy thật (Tomcat nhúng, dữ liệu mẫu sql/system_sample_data.sql), đi đúng hai "
+             "kịch bản chuẩn: module 2 trước (NV01 duyệt, phân công GH03, xuất và in DH1024), sau đó module 1 (KH01 "
+             "theo dõi hóa đơn HD1024 vừa xuất). Thông báo của các trang do*.jsp hiện bằng hộp thoại alert của trình "
+             "duyệt, được ghi trong chú thích hình.")
+add_heading("Module 2 - Sale staff approves orders + export", 3)
+for n, (name, cap) in enumerate(APP, 1):
+    if n == 9:
+        add_heading("Module 1 - Customer tracks invoice", 3)
+    picture(SHOTS / "app" / f"{name}.png", f"Hình 8.{n} - {cap}")
+add_heading("8.5. Cấu trúc project trong editor", 2)
+new_par(text="Project mở trong Visual Studio Code. Thư mục java/ theo bố cục của giáo trình: src/model (JavaBean thực "
+             "thể), src/dao (lớp DAO cơ sở và các XxxDAO extends DAO), WebContent (trang gd*/do*.jsp chia theo actor: "
+             "khachhang/, nhanvienbanhang/; WEB-INF/web.xml), test (unittest: kiểm thử DAO; webtest: chạy các trang JSP "
+             "trong Tomcat nhúng; run: chương trình chạy thử). sql/ chứa lược đồ CSDL và dữ liệu mẫu, diagrams/ chứa mã "
+             "PlantUML và ảnh của mọi biểu đồ.")
+picture(SHOTS / "editor-project-structure.png", "Hình 8.12 - Cây thư mục: java/src (dao, model) và java/test")
+picture(SHOTS / "editor-project-structure-2.png", "Hình 8.13 - Cây thư mục: java/WebContent (khachhang, nhanvienbanhang, WEB-INF)")
+add_heading("8.6. Mã nguồn trên GitHub", 2)
+p = new_par(text="Link source code: ")
+r = p.add_run(GITHUB)
+r.bold = True
+new_par(text="Repository gồm mã Java/JSP (java/), CSDL (sql/), mã PlantUML và ảnh biểu đồ (diagrams/, puml_nop_bai/), "
+             "ảnh giao diện (screenshots/) và các script:")
+for line in ["python3 run_app.py - biên dịch và chạy ứng dụng tại http://localhost:8080/gdLogin.jsp (cần Java 17+, "
+             "không cần cài MySQL/Tomcat: dùng SQLite + Tomcat nhúng với dữ liệu mẫu)",
+             "python3 verify.py - kiểm tra CSDL, biên dịch, chạy 25 ca kiểm thử (22 ca DAO + 3 ca luồng web), kiểm tra "
+             "cú pháp PlantUML. Kết quả ngày 14/11/2026: 25/25 ca đạt, VERIFIED",
+             "python3 build_puml_nop_bai.py - sinh mã PlantUML độc lập (không !include) để nộp vào form"]:
+    new_par("List Bullet", line)
+
 page_break()
 add_heading("Phụ lục A. Lịch sử phiên bản", 1)
 new_par(text="Các phiên bản của báo cáo, từ bản đầu tiên trong cnpm-hrm đến bản tổng hợp này. Tên tệp đã được đổi để "
@@ -153,6 +255,19 @@ new_par(text="Các hình dưới đây đã được thay thế ở phiên bản
              "bản dùng thử nên có hình mờ \"evaluation copy\".")
 for n, (name, title, replaced) in enumerate(OLD_FIGURES, 1):
     picture(OLD_FIGS / name, f"Hình B.{n} - {title}. Đã thay bằng: {replaced}")
+
+page_break()
+add_heading("Phụ lục C. Các prompt đã dùng và cách sử dụng kết quả", 1)
+new_par(text="Công cụ: Claude Code (trợ lý AI chạy trong VS Code/terminal) cùng các skill môn học cnpm / cnpm-vp. Bảng "
+             "liệt kê các prompt chính theo thứ tự thời gian (lấy từ lịch sử phiên làm việc), phần việc mà prompt phục "
+             "vụ, kết quả AI tạo ra và cách em sử dụng kết quả: dùng luôn; chỉnh sửa (giữ khung, sửa nội dung cho đúng "
+             "đề và giáo trình); tham khảo và vẽ lại / viết lại. Mọi kết quả đều được em đối chiếu với đề bài và giáo "
+             "trình BG CNPM 2020 trước khi đưa vào báo cáo.")
+prompts = json.loads(PROMPTS.read_text(encoding="utf-8"))
+table([["#", "Ngày", "Phần", "Prompt", "Kết quả AI", "Cách sử dụng"]]
+      + [[str(i), x["date"], x["phase"], x["prompt"], x["output"], x["usage"] + (("\n" + x["note"]) if x.get("note") else "")]
+         for i, x in enumerate(prompts, 1)],
+      [0.7, 2.1, 1.9, 5.6, 3.6, 3.2])
 
 # ---------- 2. bookmarks on every heading (level 1-3) ----------
 headings = []
@@ -212,6 +327,6 @@ settings = d.settings.element
 settings.append(el("w:updateFields", **{"w:val": "true"}))  # Word refreshes page numbers on open
 
 
-d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản tổng hợp)"
+d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản cuối)"
 d.save(OUT)
 print(f"wrote {OUT.name}: {len(headings)} TOC entries")

@@ -12,3 +12,4 @@ __pycache__/
 .playwright-mcp/
 .DS_Store
 *.class
+prompts_appendix.json
