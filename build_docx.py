@@ -34,9 +34,11 @@ import generate  # noqa: E402  scenario v3 data
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "source" / "34_B23DCAT280_v3_2026-09-21_cnpm-hrm-goc.docx"
-OUT = ROOT / "34_B23DCAT280_v5_2026-10-26_day-du.docx"
+USE_VP = "--vp" in sys.argv  # Visual Paradigm images: intermediate input of build_full_docx.py (v8)
+OUT = ROOT / ("build/v5_vp-images.docx" if USE_VP else "34_B23DCAT280_v5_2026-10-26_day-du.docx")
 PNG = ROOT / "diagrams" / "out" / "png"
-MAX_W, MAX_H = 16.5, 21.0  # cm
+VP_PNG = ROOT / "diagrams" / "out" / "vp"  # Visual Paradigm CE exports (build_vp.py); preferred when present
+MAX_W, MAX_H = (16.0, 22.0) if "--vp" in sys.argv else (16.5, 21.0)  # cm; v8 is A4 with 3 cm / 2 cm side margins
 
 d = docx.Document(SRC)
 body = list(d.element.body.iterchildren())
@@ -87,7 +89,9 @@ def table(rows):
 
 
 def picture_run(paragraph, name):
-    path = PNG / f"{name}.png"
+    path = VP_PNG / f"{name}.png"
+    if not (USE_VP and path.exists()):
+        path = PNG / f"{name}.png"
     w, h = Image.open(path).size
     width = MAX_W
     if width * h / w > MAX_H:
@@ -157,13 +161,14 @@ replace_picture(227, "q1a-1-usecase-overview")
 replace_picture(246, "q1a-2-usecase-track-invoice")
 replace_picture(270, "q1a-3-usecase-approve-export")
 replace_picture(346, "q2b-entity-classes")
-set_text(P(347), "Hình 6.1 - Biểu đồ lớp thực thể của hai module (PlantUML)")
+TOOL = "Visual Paradigm" if USE_VP else "PlantUML"
+set_text(P(347), f"Hình 6.1 - Biểu đồ lớp thực thể của hai module ({TOOL})")
 replace_picture(366, "q3a-2-analysis-classes-approve-export")
-set_text(P(367), "Hình 6.2 - Biểu đồ lớp phân tích Boundary - Entity, module 2 (PlantUML)")
+set_text(P(367), f"Hình 6.2 - Biểu đồ lớp phân tích Boundary - Entity, module 2 ({TOOL})")
 replace_picture(370, "x2-state-order")
-set_text(P(371), "Hình 6.4 - Biểu đồ trạng thái của đối tượng đơn hàng (PlantUML)")
+set_text(P(371), f"Hình 6.4 - Biểu đồ trạng thái của đối tượng đơn hàng ({TOOL})")
 replace_picture(428, "x3-sequence-analysis-approve-export")
-set_text(P(429), "Hình 6.3 - Biểu đồ tuần tự phân tích, 51 bước (PlantUML)")
+set_text(P(429), f"Hình 6.3 - Biểu đồ tuần tự phân tích, 51 bước ({TOOL})")
 
 # ---------- 2. Module 2 corrections ----------
 set_text(P(336), "Một SaleStaff duyệt và xuất nhiều Order; đơn chưa duyệt chưa có nhân viên, sau khi duyệt gắn đúng "
@@ -632,8 +637,11 @@ ch8 += table([
 ])
 insert_after(end_of_ch7, ch8)
 
+OUT.parent.mkdir(exist_ok=True)
 d.save(OUT)
-print(f"wrote {OUT.name}")
+print(f"wrote {OUT.relative_to(ROOT)}")
+if USE_VP:
+    raise SystemExit
 
 # ---------- 7. Design-phase submission: exam question + chapter 7 only ----------
 DESIGN_OUT = ROOT / "submission_ready" / "Thiet_ke_3" / "34_B23DCAT280_v5_2026-10-26_ThietKe3.docx"

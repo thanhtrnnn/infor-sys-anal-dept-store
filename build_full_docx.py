@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build the final report: v5 content regrouped into the four parts the course asks for, plus everything else.
 
-Input : 34_B23DCAT280_v5_2026-10-26_day-du.docx (latest full report, from build_docx.py)
+Input : build/v5_vp-images.docx (v5 content with the Visual Paradigm images, from build_docx.py --vp)
         source/vp_images/*.png (figures of v1-v3 that later versions replaced)
         screenshots/app/*.png (screens of the running app), screenshots/editor-*.png (project tree in VS Code)
         prompts_appendix.json (prompts used, for Phụ lục C; kept local, not in git)
-Output: 34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx
+Output: 34_B23DCAT280_v8_2026-11-15_ban-cuoi.docx (cover page, A4, page numbers)
         = PHẦN I Đặc tả (1-4, 5.1-5.6, 6.1-6.5) · PHẦN II Phân tích (5.7-5.10, 6.6-6.9) · PHẦN III Thiết kế (7)
           · PHẦN IV Lập trình (8 + 8.4 screens, 8.5 project tree, 8.6 GitHub) + table of contents
           + Phụ lục A (version history) + Phụ lục B (replaced figures) + Phụ lục C (prompts and how they were used)
@@ -24,8 +24,9 @@ from docx.text.paragraph import Paragraph
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
-SRC = ROOT / "34_B23DCAT280_v5_2026-10-26_day-du.docx"
-OUT = ROOT / "34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx"
+SRC = ROOT / "build" / "v5_vp-images.docx"  # python3 build_docx.py --vp
+OUT = ROOT / "34_B23DCAT280_v8_2026-11-15_ban-cuoi.docx"
+LOGO = ROOT / "assets" / "ptit-logo.png"
 SHOTS = ROOT / "screenshots"
 PROMPTS = ROOT / "prompts_appendix.json"
 GITHUB = "https://github.com/thanhtrnnn/infor-sys-anal-dept-store"
@@ -57,6 +58,10 @@ VERSIONS = [
     ["v7", "14/11/2026", "TXTHANH\n34_B23DCAT280_v7_2026-11-14_ban-cuoi.docx\n" + "github.com/thanhtrnnn/infor-sys-anal-dept-store",
      "Bản cuối: chia thành 4 phần Đặc tả / Phân tích / Thiết kế / Lập trình; thêm ảnh giao diện chạy thật (8.4), "
      "ảnh cấu trúc project trong editor (8.5), link mã nguồn GitHub (8.6), phụ lục C các prompt đã dùng."],
+    ["v8", "15/11/2026", "TXTHANH\n34_B23DCAT280_v8_2026-11-15_ban-cuoi.docx\nvp/TXTHANH.vpp",
+     "Mọi biểu đồ UML vẽ lại trong Visual Paradigm (build_vp.py) và xuất bằng VP Community Edition; trang bìa, khổ "
+     "A4, đánh số trang; cây thư mục project gộp 2 cột Explorer trên một hàng (Hình 8.12); phụ lục C viết lại theo "
+     "nhóm công việc; thêm phụ lục D tài liệu tham khảo."],
 ]
 
 OLD_FIGURES = [
@@ -146,9 +151,9 @@ def table(rows, widths):
     return t
 
 
-def picture(path, caption):
+def picture(path, caption, max_w=16.0):
     w, h = Image.open(path).size
-    width = min(16.0, 20.0 * w / h)
+    width = min(max_w, 20.0 * w / h)
     p = new_par(center=True)
     p.add_run().add_picture(str(path), width=Cm(width))
     new_par(text=caption, italic=True, center=True, size=10)
@@ -227,9 +232,9 @@ new_par(text="Project mở trong Visual Studio Code. Thư mục java/ theo bố 
              "thể), src/dao (lớp DAO cơ sở và các XxxDAO extends DAO), WebContent (trang gd*/do*.jsp chia theo actor: "
              "khachhang/, nhanvienbanhang/; WEB-INF/web.xml), test (unittest: kiểm thử DAO; webtest: chạy các trang JSP "
              "trong Tomcat nhúng; run: chương trình chạy thử). sql/ chứa lược đồ CSDL và dữ liệu mẫu, diagrams/ chứa mã "
-             "PlantUML và ảnh của mọi biểu đồ.")
-picture(SHOTS / "editor-project-structure.png", "Hình 8.12 - Cây thư mục: java/src (dao, model) và java/test")
-picture(SHOTS / "editor-project-structure-2.png", "Hình 8.13 - Cây thư mục: java/WebContent (khachhang, nhanvienbanhang, WEB-INF)")
+             "PlantUML, project Visual Paradigm (vp/) và ảnh của mọi biểu đồ.")
+picture(SHOTS / "editor-explorer-2col.png", "Hình 8.12 - Cây thư mục trong Explorer của VS Code: bên trái java/src "
+        "(dao, model) và java/test; bên phải java/WebContent (khachhang, nhanvienbanhang, WEB-INF)", max_w=13.0)
 add_heading("8.6. Mã nguồn trên GitHub", 2)
 p = new_par(text="Link source code: ")
 r = p.add_run(GITHUB)
@@ -240,7 +245,9 @@ for line in ["python3 run_app.py - biên dịch và chạy ứng dụng tại ht
              "không cần cài MySQL/Tomcat: dùng SQLite + Tomcat nhúng với dữ liệu mẫu)",
              "python3 verify.py - kiểm tra CSDL, biên dịch, chạy 25 ca kiểm thử (22 ca DAO + 3 ca luồng web), kiểm tra "
              "cú pháp PlantUML. Kết quả ngày 14/11/2026: 25/25 ca đạt, VERIFIED",
-             "python3 build_puml_nop_bai.py - sinh mã PlantUML độc lập (không !include) để nộp vào form"]:
+             "python3 build_puml_nop_bai.py - sinh mã PlantUML độc lập (không !include) để nộp vào form",
+             "python3 build_vp.py - vẽ lại mọi biểu đồ trong Visual Paradigm (qua plugin VP MCP) và xuất ảnh "
+             "diagrams/out/vp/*.png dùng trong báo cáo"]:
     new_par("List Bullet", line)
 
 page_break()
@@ -257,17 +264,35 @@ for n, (name, title, replaced) in enumerate(OLD_FIGURES, 1):
     picture(OLD_FIGS / name, f"Hình B.{n} - {title}. Đã thay bằng: {replaced}")
 
 page_break()
-add_heading("Phụ lục C. Các prompt đã dùng và cách sử dụng kết quả", 1)
-new_par(text="Công cụ: Claude Code (trợ lý AI chạy trong VS Code/terminal) cùng các skill môn học cnpm / cnpm-vp. Bảng "
-             "liệt kê các prompt chính theo thứ tự thời gian (lấy từ lịch sử phiên làm việc), phần việc mà prompt phục "
-             "vụ, kết quả AI tạo ra và cách em sử dụng kết quả: dùng luôn; chỉnh sửa (giữ khung, sửa nội dung cho đúng "
-             "đề và giáo trình); tham khảo và vẽ lại / viết lại. Mọi kết quả đều được em đối chiếu với đề bài và giáo "
-             "trình BG CNPM 2020 trước khi đưa vào báo cáo.")
+add_heading("Phụ lục C. Prompt sử dụng trong quá trình làm bài", 1)
 prompts = json.loads(PROMPTS.read_text(encoding="utf-8"))
-table([["#", "Ngày", "Phần", "Prompt", "Kết quả AI", "Cách sử dụng"]]
-      + [[str(i), x["date"], x["phase"], x["prompt"], x["output"], x["usage"] + (("\n" + x["note"]) if x.get("note") else "")]
-         for i, x in enumerate(prompts, 1)],
-      [0.7, 2.1, 1.9, 5.6, 3.6, 3.2])
+new_par("List Bullet", "Công cụ: " + prompts["tool"])
+new_par("List Bullet", "Cách đọc cột \"Cách sử dụng kết quả\":")
+for line in prompts["legend"]:
+    new_par("List Bullet 2", line)
+for g, group in enumerate(prompts["groups"], 1):
+    add_heading(f"C.{g}. {group['title']}", 2)
+    table([["#", "Prompt", "Kết quả", "Cách sử dụng kết quả"]]
+          + [[f"{g}.{i}", *row] for i, row in enumerate(group["rows"], 1)],
+          [1.0, 6.6, 4.4, 4.0])
+    new_par()
+add_heading("Phụ lục D. Tài liệu tham khảo", 1)
+for i, (ref, url) in enumerate(prompts["references"], 1):
+    p = new_par(text=f"[{i}] {ref}" + (" " if url else ""))
+    if url:
+        p.add_run(url).italic = True
+
+# ---------- 1b. headings that named the old drawing tool ----------
+RENAME = {"4.1. PlantUML - Use case tổng quan": "4.1. Biểu đồ use case tổng quan",
+          "5.5. PlantUML - Customer tracks invoice": "5.5. Biểu đồ use case chi tiết - Customer tracks invoice",
+          "6.4. PlantUML - Sale staff approves order + export":
+              "6.4. Biểu đồ use case chi tiết - Sale staff approves order + export"}
+for p in d.paragraphs:
+    if p.text.strip() in RENAME:
+        new = RENAME[p.text.strip()]
+        for r in p.runs[1:]:
+            r._r.getparent().remove(r._r)
+        p.runs[0].text = new
 
 # ---------- 2. bookmarks on every heading (level 1-3) ----------
 headings = []
@@ -326,6 +351,108 @@ toc.addnext(page_break()._p)
 settings = d.settings.element
 settings.append(el("w:updateFields", **{"w:val": "true"}))  # Word refreshes page numbers on open
 
+
+# ---------- 4. layout: A4, Times New Roman 13, page numbers, cover page ----------
+from docx.enum.section import WD_SECTION  # noqa: E402
+from docx.shared import Pt as _Pt  # noqa: E402
+
+for name in ("normal", "List Bullet", "List Bullet 2"):
+    st = d.styles[name]
+    st.font.name = "Times New Roman"
+    st.font.size = _Pt(13)
+    st.element.get_or_add_rPr().get_or_add_rFonts().set(qn("w:eastAsia"), "Times New Roman")
+    st.paragraph_format.space_after = _Pt(4)
+    st.paragraph_format.line_spacing = 1.2
+for name, size in (("Heading 1", 16), ("Heading 2", 14), ("Heading 3", 13)):
+    st = d.styles[name]
+    st.font.name = "Times New Roman"
+    st.font.size = _Pt(size)
+    st.font.bold = True
+    st.paragraph_format.space_before = _Pt(12 if name == "Heading 1" else 8)
+    st.paragraph_format.space_after = _Pt(6)
+    st.paragraph_format.keep_with_next = True
+for p in d.paragraphs:  # part titles centred
+    if p.style.name == "Heading 1" and p.text.startswith(("PHẦN ", "ĐỀ BÀI", "Phụ lục")):
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    elif p.style.name == "normal" and len(p.text) > 120 and p.alignment is None:
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+main = d.sections[0]
+main.page_width, main.page_height = Cm(21.0), Cm(29.7)
+main.left_margin, main.right_margin = Cm(3.0), Cm(2.0)
+main.top_margin, main.bottom_margin = Cm(2.0), Cm(2.0)
+pg = main._sectPr.find(qn("w:pgNumType"))
+if pg is None:
+    pg = el("w:pgNumType")
+    main._sectPr.append(pg)
+pg.set(qn("w:start"), "1")
+fp = main.footer.paragraphs[0]
+fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+for extra in main.footer.paragraphs[1:]:
+    extra._p.getparent().remove(extra._p)
+for child in list(fp._p):  # the v3 footer already holds a PAGE field: start from an empty paragraph
+    if child.tag != qn("w:pPr"):
+        fp._p.remove(child)
+for k in ("begin", None, "separate", "end"):
+    fp._p.append(fld(k) if k else instr(" PAGE "))
+
+# cover = own section (no page number, double page border), inserted before the exam-question page
+cover = []
+
+
+def cpar(text="", size=13, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.CENTER, before=0, after=0, indent=None):
+    p = d.add_paragraph(style="normal")
+    p.alignment = align
+    p.paragraph_format.space_before, p.paragraph_format.space_after = _Pt(before), _Pt(after)
+    p.paragraph_format.line_spacing = 1.15
+    if indent is not None:
+        p.paragraph_format.left_indent = Cm(indent)
+    if text:
+        r = p.add_run(text)
+        r.bold, r.italic, r.font.size = bold or None, italic or None, _Pt(size)
+    cover.append(p)
+    return p
+
+
+cpar("HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG", 13, bold=True, before=24)
+cpar("KHOA CÔNG NGHỆ THÔNG TIN 1", 13, bold=True, before=6)
+cpar("──────────────", 13, after=24)
+logo = cpar(after=30)
+logo.add_run().add_picture(str(LOGO), width=Cm(3.6))
+cpar("BÁO CÁO", 14, bold=True, after=8)
+cpar("PHÂN TÍCH THIẾT KẾ", 22, bold=True)
+cpar("HỆ THỐNG THÔNG TIN", 22, bold=True, after=14)
+cpar("Hệ thống quản lí cửa hàng bách hóa trực tuyến", 14, italic=True)
+cpar("(Online Department Store Management System)", 13, italic=True, after=20)
+cpar("Đề tài: 34", 16, bold=True, after=30)
+INFO = [("Giảng viên hướng dẫn", ".................................................."),
+        ("Họ và tên sinh viên", ".................................................."),
+        ("Mã sinh viên", "B23DCAT280"),
+        ("Lớp", "CLC N1"),
+        ("Module", "Customer tracks invoice; Sale staff approves orders + export")]
+for k, v in INFO:
+    p = cpar(align=WD_ALIGN_PARAGRAPH.LEFT, indent=1.8, after=2)
+    p.paragraph_format.tab_stops.add_tab_stop(Cm(6.3))
+    p.add_run(f"{k}\t: ").bold = True
+    p.add_run(v).bold = True
+cpar("Hà Nội – 2026", 13, bold=True, italic=True, before=70)
+
+end = d.add_paragraph()
+cover_sect = el("w:sectPr")
+for tag, attrs in (("w:pgSz", {"w:w": "11906", "w:h": "16838"}),
+                   ("w:pgMar", {"w:top": "1134", "w:right": "1134", "w:bottom": "1134", "w:left": "1418",
+                                "w:header": "709", "w:footer": "709", "w:gutter": "0"})):
+    cover_sect.append(el(tag, **attrs))
+borders = el("w:pgBorders", **{"w:offsetFrom": "page"})
+for side in ("top", "left", "bottom", "right"):
+    borders.append(el(f"w:{side}", **{"w:val": "thinThickSmallGap", "w:sz": "24", "w:space": "24",
+                                       "w:color": "1F3864"}))
+cover_sect.append(borders)
+end._p.get_or_add_pPr().append(cover_sect)
+cover.append(end)
+first = body[0]
+for p in cover:
+    first.addprevious(p._p)
 
 d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản cuối)"
 d.save(OUT)
