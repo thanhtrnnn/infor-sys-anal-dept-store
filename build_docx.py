@@ -473,6 +473,8 @@ ch7 += table([
           "tblSaleStaff, tblManagementStaff (chỉ còn một khóa ngoại, phân biệt bằng tblMember.role) và các bảng "
           "thống kê. Giữ tblOrderDetail.unitPrice vì là giá tại thời điểm đặt (BR08)."],
 ])
+ch7 += [para("Ràng buộc đơn hàng có ít nhất một mặt hàng (Order 1..* OrderDetail, mục 6.6) là quy tắc ứng dụng, "
+             "CSDL không ép: OrderDAO.exportOrder() từ chối xuất đơn không có dòng hàng và trả NO_DETAILS.")]
 ch7 += [para("Kết quả có 11 bảng, mọi khóa ngoại đều có chỉ mục; script sql/system_schema.sql chạy được trên MySQL 8 "
              "và đã kiểm tra trên SQLite với khóa ngoại được bật."),
         figure("q4a-database-system", "Hình 7.2 - Biểu đồ CSDL của hệ thống"),
@@ -513,7 +515,8 @@ MODULE_DESIGN = [
      "q3c-2-activity-approve-export", "q3c-4-sequence-design-approve-export",
      ["Ngoại lệ: exportOrder() rollback toàn bộ giao dịch và doExportOrder.jsp thông báo lỗi khi checkStock() báo "
       "thiếu hàng (16b), đơn đã được xuất trước đó (16a) hoặc chưa được phân công nhân viên giao hàng (16c); "
-      "doApproveOrder.jsp thông báo lỗi khi đơn đã bị hủy (8)."]),
+      "exportOrder() trả ExportResult (EXPORTED, NO_DETAILS, FAILED): đơn không có mặt hàng nào trả NO_DETAILS và "
+      "không bị xuất; doApproveOrder.jsp thông báo lỗi khi đơn đã bị hủy (8)."]),
 ]
 for num, title, module, uc, screens, classes, class_note, activity, sequence, notes in MODULE_DESIGN:
     fig = iter(range(1, 50))
@@ -539,16 +542,18 @@ for num, title, module, uc, screens, classes, class_note, activity, sequence, no
 ch7 += [heading("7.5. Biểu đồ gói", 2),
         para("Theo giáo trình mục 4.3.3: lớp thực thể trong gói model, lớp DAO trong gói dao, trang JSP trong gói view; "
              "gói view chia theo người dùng: thanhvien (gdLogin.jsp, doLogin.jsp), khachhang (3 trang của module 1), "
-             "nhanvienbanhang (5 trang gd*.jsp và 3 trang do*.jsp của module 2). Mọi lớp trong hình đều có mã nguồn "
-             "ở chương 8."),
+             "nhanvienbanhang (5 trang gd*.jsp và 3 trang do*.jsp của module 2). Gói thanhvien là gói logic: hai trang "
+             "đăng nhập nằm ở thư mục gốc WebContent, hai gói còn lại trùng tên thư mục. Mọi lớp trong hình đều có "
+             "mã nguồn ở chương 8."),
         figure("q5a-package", "Hình 7.5 - Biểu đồ gói"),
         heading("7.6. Biểu đồ triển khai (MVC trên J2EE)", 2),
         bullet("Máy khách: trình duyệt nhận trang HTML do JSP sinh ra qua HTTP/HTTPS; in hóa đơn bằng lệnh in của "
                "trình duyệt."),
-        bullet("Web Server: Apache Tomcat 10+ (Jakarta EE) chạy deptstore.war. View là các trang gd*.jsp; Controller "
-               "là các trang do*.jsp và gói dao (giáo trình gọi lớp DAO là lớp điều khiển); Model là gói model. Lớp "
+        bullet("Web Server: Apache Tomcat 10+ (Jakarta EE) chạy deptstore.war. View là các trang gd*.jsp: hiển thị "
+               "và gọi lớp DAO để lấy dữ liệu; các trang do*.jsp là phần xử lí form (nhận dữ liệu, set thuộc tính, "
+               "gọi DAO); lớp DAO là tầng riêng (giáo trình gọi lớp DAO là lớp điều khiển); Model là gói model. Lớp "
                "dao, model nằm trong WEB-INF/classes, JDBC driver trong WEB-INF/lib."),
-        bullet("Database Server: MySQL 8 chứa CSDL 11 bảng (mục 7.2), kết nối qua JDBC (TCP 3306)."),
+        bullet("Database Server: MySQL 8 chứa CSDL 11 bảng (mục 7.2), kết nối qua JDBC (TCP 3306). Bản chạy thử ở chương 8 dùng SQLite nhúng và Tomcat nhúng (run_app.py) thay cho MySQL; hai môi trường tách biệt, mã DAO không đổi."),
         figure("q5b-deployment", "Hình 7.6 - Biểu đồ triển khai")]
 end_of_ch7 = insert_after(end_of_m2, ch7)
 
@@ -583,7 +588,7 @@ JAVA = ROOT / "java"
 ch8 = [heading("8. Cài đặt (câu 4b)", 1),
        para("Mã nguồn cài đặt đúng thiết kế chương 7 và CSDL mục 7.2, tổ chức như giáo trình mục 5.1: java/src/model "
             "(lớp thực thể), java/src/dao (lớp DAO), java/WebContent (trang JSP), java/test (kiểm thử). Mặc định kết "
-            "nối MySQL; đã chạy kiểm thử 25/25 ca (22 ca đơn vị cho DAO, 3 ca chạy toàn bộ trang JSP trong Tomcat)."),
+            "nối MySQL; đã chạy kiểm thử 26/26 ca (23 ca đơn vị cho DAO, 3 ca chạy toàn bộ trang JSP trong Tomcat)."),
        heading("8.1. Khung lớp", 2)]
 ch8 += table([
     ["Gói", "Lớp", "Vai trò"],
@@ -598,7 +603,7 @@ ch8 += table([
 ch8 += [para(bold_prefix="Lớp DAO cơ sở:"),
         *code_block((JAVA / "src" / "dao" / "DAO.java").read_text(encoding="utf-8")),
         para(bold_prefix="Phương thức xuất đơn trong một giao dịch (OrderDAO.exportOrder):"),
-        *code_block(method_body(JAVA / "src" / "dao" / "OrderDAO.java", "public boolean exportOrder(Order order)")),
+        *code_block(method_body(JAVA / "src" / "dao" / "OrderDAO.java", "public ExportResult exportOrder(Order order)")),
         heading("8.2. Giải thích các phương thức", 2)]
 ch8 += table([
     ["Lớp", "Phương thức", "Hoạt động"],

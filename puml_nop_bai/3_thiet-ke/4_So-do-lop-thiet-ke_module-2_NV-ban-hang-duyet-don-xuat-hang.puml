@@ -113,7 +113,7 @@ class OrderDAO {
   +getUnexportedOrder() : Order[]
   +approveOrder(order : Order) : boolean
   +assignDeliveryStaff(order : Order) : boolean
-  +exportOrder(order : Order) : boolean
+  +exportOrder(order : Order) : ExportResult
 }
 class OrderDetailDAO {
   +OrderDetailDAO()

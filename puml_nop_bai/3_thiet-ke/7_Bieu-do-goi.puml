@@ -1,0 +1,67 @@
+@startuml
+' Shared look for every diagram: plain black-and-white UML, course style.
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #000000
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  HeaderBackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam actorBorderColor #000000
+skinparam actorBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #000000
+skinparam packageBorderColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageStyle rectangle
+skinparam nodeBackgroundColor #FFFFFF
+skinparam artifactBackgroundColor #FFFFFF
+skinparam databaseBackgroundColor #FFFFFF
+skinparam componentBackgroundColor #FFFFFF
+skinparam stateBackgroundColor #FFFFFF
+skinparam stateBorderColor #000000
+skinparam objectBackgroundColor #FFFFFF
+skinparam objectBorderColor #000000
+skinparam entityBackgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #FFFFFF
+skinparam controlBackgroundColor #FFFFFF
+skinparam noteBackgroundColor #FFFFF0
+skinparam noteBorderColor #888888
+skinparam titleFontSize 14
+hide empty members
+hide circle
+title Q5a – Biểu đồ gói cho các lớp của Q3b (giáo trình mục 4.3.3: view tách theo actor, dao, model)
+
+package "view" {
+  package "thanhvien" as vtv {
+    class "gdLogin.jsp\ndoLogin.jsp" as TV
+  }
+  package "khachhang" as vkh {
+    class "gdCustomerHome.jsp\ngdInvoiceList.jsp\ngdInvoiceDetail.jsp" as KH
+  }
+  package "nhanvienbanhang" as vbh {
+    class "gdSaleHome.jsp\ngdOrderList.jsp\ngdOrderDetail.jsp\ngdDeliveryStaffList.jsp\ngdInvoicePrint.jsp\ndoApproveOrder.jsp\ndoSaveAssign.jsp\ndoExportOrder.jsp" as BH
+  }
+}
+package "dao" {
+  class "DAO\nMemberDAO\nInvoiceDAO\nOrderDAO\nOrderDetailDAO\nProductDAO\nDeliveryStaffDAO" as D
+}
+package "model" {
+  class "Member, Customer, Staff, SaleStaff\nOrder, OrderDetail, Product\nDeliveryStaff, Invoice" as M
+}
+hide TV circle
+hide KH circle
+hide BH circle
+hide D circle
+hide M circle
+view -- dao
+dao -- model
+@enduml

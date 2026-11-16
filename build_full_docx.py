@@ -12,6 +12,7 @@ Output: 34_B23DCAT280_v8_2026-11-15_ban-cuoi.docx (cover page, A4, page numbers)
 
 Run: uv run --no-project --with python-docx --with pillow python3 build_full_docx.py
 """
+import copy
 import json
 from pathlib import Path
 
@@ -51,7 +52,7 @@ VERSIONS = [
     ["v5", "26/10/2026", "TXTHANH\n34_B23DCAT280_v5_2026-10-26_day-du.docx\nsubmission_ready/Thiet_ke_3",
      "Use case phân rã theo giao diện, đăng nhập theo actor, «extend»; thực thể pha phân tích bỏ id, thêm kế thừa "
      "Member/Staff; CSDL hai module; 7.5 biểu đồ gói, 7.6 biểu đồ triển khai; chương 8 Cài đặt (câu 4b) và kiểm "
-     "thử 25/25. Bản nộp Thiết kế 3 (toàn bộ pha thiết kế)."],
+     "thử 26/26. Bản nộp Thiết kế 3 (toàn bộ pha thiết kế)."],
     ["v6", "27/10/2026", "TXTHANH\n34_B23DCAT280_v6_2026-10-27_tong-hop.docx",
      "Bản tổng hợp: nội dung v5, mục lục, lịch sử phiên bản (phụ lục A) và các hình của phiên bản trước đã được "
      "thay thế (phụ lục B)."],
@@ -243,8 +244,8 @@ new_par(text="Repository gồm mã Java/JSP (java/), CSDL (sql/), mã PlantUML v
              "ảnh giao diện (screenshots/) và các script:")
 for line in ["python3 run_app.py - biên dịch và chạy ứng dụng tại http://localhost:8080/gdLogin.jsp (cần Java 17+, "
              "không cần cài MySQL/Tomcat: dùng SQLite + Tomcat nhúng với dữ liệu mẫu)",
-             "python3 verify.py - kiểm tra CSDL, biên dịch, chạy 25 ca kiểm thử (22 ca DAO + 3 ca luồng web), kiểm tra "
-             "cú pháp PlantUML. Kết quả ngày 14/11/2026: 25/25 ca đạt, VERIFIED",
+             "python3 verify.py - kiểm tra CSDL, biên dịch, chạy 26 ca kiểm thử (23 ca DAO + 3 ca luồng web), kiểm tra "
+             "cú pháp PlantUML. Kết quả ngày 16/11/2026: 26/26 ca đạt, VERIFIED",
              "python3 build_puml_nop_bai.py - sinh mã PlantUML độc lập (không !include) để nộp vào form",
              "python3 build_vp.py - vẽ lại mọi biểu đồ trong Visual Paradigm (qua plugin VP MCP) và xuất ảnh "
              "diagrams/out/vp/*.png dùng trong báo cáo"]:
@@ -258,10 +259,13 @@ new_par(text="Các phiên bản của báo cáo, từ bản đầu tiên trong c
 table([["Phiên bản", "Ngày", "Nguồn / tệp", "Nội dung và thay đổi chính"]] + VERSIONS, [1.6, 2.0, 5.4, 8.0])
 new_par()
 add_heading("Phụ lục B. Hình của các phiên bản trước", 1)
-new_par(text="Các hình dưới đây đã được thay thế ở phiên bản sau; giữ lại để đối chiếu. Hình vẽ bằng Visual Paradigm "
-             "bản dùng thử nên có hình mờ \"evaluation copy\".")
+new_par(text="Các hình dưới đây đã được thay thế ở phiên bản sau; giữ lại để đối chiếu. Bốn hình vẽ bằng Visual Paradigm "
+             "(B.4 - B.7) được dựng lại từ dự án b23dcat280.vpp và xuất bằng Visual Paradigm Community Edition, giữ nguyên "
+             "nội dung của phiên bản cũ; ba hình use case (B.1 - B.3) vẽ bằng PlantUML.")
+CE_OLD = ROOT / "diagrams" / "out" / "vp_old_final"
 for n, (name, title, replaced) in enumerate(OLD_FIGURES, 1):
-    picture(OLD_FIGS / name, f"Hình B.{n} - {title}. Đã thay bằng: {replaced}")
+    src = CE_OLD / name if (CE_OLD / name).exists() else OLD_FIGS / name
+    picture(src, f"Hình B.{n} - {title}. Đã thay bằng: {replaced}")
 
 page_break()
 add_heading("Phụ lục C. Prompt sử dụng trong quá trình làm bài", 1)
@@ -425,11 +429,10 @@ cpar("HỆ THỐNG THÔNG TIN", 22, bold=True, after=14)
 cpar("Hệ thống quản lí cửa hàng bách hóa trực tuyến", 14, italic=True)
 cpar("(Online Department Store Management System)", 13, italic=True, after=20)
 cpar("Đề tài: 34", 16, bold=True, after=30)
-INFO = [("Giảng viên hướng dẫn", ".................................................."),
-        ("Họ và tên sinh viên", ".................................................."),
+INFO = [("Giảng viên hướng dẫn", "Đỗ Thị Bích Ngọc"),
+        ("Họ và tên sinh viên", "Trần Xuân Thành"),
         ("Mã sinh viên", "B23DCAT280"),
-        ("Lớp", "CLC N1"),
-        ("Module", "Customer tracks invoice; Sale staff approves orders + export")]
+        ("Lớp", "CLC N1")]
 for k, v in INFO:
     p = cpar(align=WD_ALIGN_PARAGRAPH.LEFT, indent=1.8, after=2)
     p.paragraph_format.tab_stops.add_tab_stop(Cm(6.3))
@@ -453,6 +456,116 @@ cover.append(end)
 first = body[0]
 for p in cover:
     first.addprevious(p._p)
+
+# ---------- 5. wide diagrams get their own landscape page ----------
+VPO = ROOT / "diagrams" / "out" / "vp"
+SPL = ROOT / "diagrams" / "out" / "vp_split"
+SEQ_A, SEQ_D = "x3-sequence-analysis-approve-export", "q3c-4-sequence-design-approve-export"
+LANDSCAPE = [  # caption prefix, [(png, caption suffix)], tallest picture (cm); the page is 25.7 x 17 cm
+    ("Hình 6.3 - ", [(SPL / f"{SEQ_A}_1.png", " - phần 1/2, bước 1 - 29"),
+                     (SPL / f"{SEQ_A}_2.png", " - phần 2/2, bước 30 - 51")], 14.2),
+    ("Hình 6.6 - ", [(VPO / "q3a-4-communication-approve-export.png", "")], 11.0),
+    ("Hình 7.4.7 - ", [(VPO / "q3c-2-activity-approve-export.png", "")], 12.0),
+    ("Hình 7.4.8 - ", [(SPL / f"{SEQ_D}_1.png", " - phần 1/2, bước 1 - 42"),
+                       (SPL / f"{SEQ_D}_2.png", " - phần 2/2, bước 43 - 86")], 14.2),
+    ("Hình 7.5 - ", [(VPO / "q5a-package.png", "")], 11.0),
+    ("Hình 7.6 - ", [(VPO / "q5b-deployment.png", "")], 9.5),
+]
+LAND_W = 25.5
+
+
+def is_par(e):
+    return e is not None and e.tag == qn("w:p")
+
+
+def par_text(e):
+    return "".join(t.text or "" for t in e.iter(qn("w:t"))).strip()
+
+
+def par_style(e):
+    st = e.find(qn("w:pPr") + "/" + qn("w:pStyle"))
+    return st.get(qn("w:val")) if st is not None else ""
+
+
+def fill_picture(par_el, path, max_h):
+    para = Paragraph(par_el, d)
+    for r in list(para.runs):
+        r._r.getparent().remove(r._r)
+    w, h = Image.open(path).size
+    width = min(LAND_W, max_h * w / h)
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.add_run().add_picture(str(path), width=Cm(width))
+
+
+def set_caption(par_el, text):
+    para = Paragraph(par_el, d)
+    para.runs[0].text = text
+    for r in para.runs[1:]:
+        r._r.getparent().remove(r._r)
+
+
+def section_par(sect):
+    p = el("w:p")
+    ppr = el("w:pPr")
+    ppr.append(el("w:spacing", **{"w:before": "0", "w:after": "0", "w:line": "20", "w:lineRule": "exact"}))
+    ppr.append(sect)
+    p.append(ppr)
+    return p
+
+
+def sect_copy(landscape=False, numbering_start=False):
+    s = copy.deepcopy(body.find(qn("w:sectPr")))
+    num = s.find(qn("w:pgNumType"))
+    if num is not None and not numbering_start:
+        num.attrib.pop(qn("w:start"), None)
+    if landscape:
+        sz = s.find(qn("w:pgSz"))
+        sz.set(qn("w:w"), "16838")
+        sz.set(qn("w:h"), "11906")
+        sz.set(qn("w:orient"), "landscape")
+        mar = s.find(qn("w:pgMar"))
+        for side in ("top", "bottom", "left", "right"):
+            mar.set(qn(f"w:{side}"), "1134")
+    return s
+
+
+targets = []
+for prefix, parts, max_h in LANDSCAPE:
+    cap = next(e for e in body.iterchildren() if is_par(e) and par_text(e).startswith(prefix))
+    pic = cap.getprevious()
+    assert pic.findall(".//" + qn("w:drawing")), prefix
+    start = pic
+    while par_style(start) not in ("Heading2", "Heading3"):  # the section heading opens the page
+        start = start.getprevious()
+    targets.append([prefix, parts, max_h, start, pic, cap])
+
+for prefix, parts, max_h, start, pic, cap in targets:  # fill the pictures; a split figure gets a second page
+    caption = par_text(cap)
+    fill_picture(pic, parts[0][0], max_h)
+    set_caption(cap, caption + parts[0][1])
+    last = cap
+    for path, suffix in parts[1:]:
+        pic2 = copy.deepcopy(pic)
+        cap2 = copy.deepcopy(cap)
+        last.addnext(pic2)
+        pic2.addnext(cap2)
+        fill_picture(pic2, path, max_h)
+        set_caption(cap2, caption + suffix)
+        Paragraph(pic2, d).paragraph_format.page_break_before = True
+        last = cap2
+    targets[targets.index([prefix, parts, max_h, start, pic, cap])].append(last)
+
+groups = []  # consecutive figures share one landscape section
+for t in targets:
+    if groups and groups[-1][-1][6].getnext() is t[3]:
+        groups[-1].append(t)
+        Paragraph(t[3], d).paragraph_format.page_break_before = True
+    else:
+        groups.append([t])
+for n, g in enumerate(groups):
+    g[0][3].addprevious(section_par(sect_copy(numbering_start=n == 0)))  # ends the portrait section before
+    g[-1][6].addnext(section_par(sect_copy(landscape=True)))  # ends the landscape section
+body.find(qn("w:sectPr")).find(qn("w:pgNumType")).attrib.pop(qn("w:start"), None)
 
 d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản cuối)"
 d.save(OUT)

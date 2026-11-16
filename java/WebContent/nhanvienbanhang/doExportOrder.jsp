@@ -15,12 +15,15 @@
         order.setStatus("EXPORTED");
         order.setSaleStaff(saleStaff);
         order.setExportedAt(new Date());
-        if (new OrderDAO().exportOrder(order)) {
+        OrderDAO.ExportResult result = new OrderDAO().exportOrder(order);
+        if (result == OrderDAO.ExportResult.EXPORTED) {
             message = "Xuất hàng thành công cho đơn " + order.getCode();
         } else {
             order.setStatus(oldStatus);
             order.setExportedAt(null);
-            if (!new ProductDAO().checkStock(order.getDetails())) {              // ngoại lệ 16b
+            if (result == OrderDAO.ExportResult.NO_DETAILS) {
+                message = "Đơn hàng " + order.getCode() + " không có mặt hàng để xuất";
+            } else if (!new ProductDAO().checkStock(order.getDetails())) {       // ngoại lệ 16b
                 StringBuilder missing = new StringBuilder();
                 for (OrderDetail d : order.getDetails()) {
                     if (d.getProduct().getStockQuantity() < d.getQuantity()) {

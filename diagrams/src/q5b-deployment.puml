@@ -13,8 +13,9 @@ node "Máy in hóa đơn\n<<device>>" as printer
 node "Web Server\n<<device>>" as server {
   node "Apache Tomcat 10+ (Jakarta EE / J2EE web container)\n<<execution environment>>" as tomcat {
     artifact "deptstore.war" as war {
-      component "View\ngdLogin.jsp, khachhang/gd*.jsp,\nnhanvienbanhang/gd*.jsp" as viewc
-      component "Controller\nnhanvienbanhang/do*.jsp, doLogin.jsp\n+ WEB-INF/classes/dao (DAO, XxxDAO)" as ctlc
+      component "View\ngdLogin.jsp, khachhang/gd*.jsp,\nnhanvienbanhang/gd*.jsp\n(hiển thị, gọi DAO)" as viewc
+      component "Xử lí form\nnhanvienbanhang/do*.jsp, doLogin.jsp" as formc
+      component "DAO\nWEB-INF/classes/dao (DAO, XxxDAO)" as daoc
       component "Model\nWEB-INF/classes/model\n(Order, Invoice, ...)" as modelc
       artifact "WEB-INF/lib/\nmysql-connector-j.jar" as driver
     }
@@ -29,7 +30,9 @@ node "Database Server\n<<device>>" as dbserver {
 client -- server : 1: HTTP/HTTPS (port 8080/443)
 server -- dbserver : 2: JDBC / TCP 3306
 client -- printer : 3: in hóa đơn\n(window.print())
-viewc ..> ctlc : submit form
-ctlc ..> modelc : đóng gói thực thể
-ctlc ..> driver : JDBC
+viewc ..> formc : submit form
+viewc ..> daoc : gọi DAO
+formc ..> daoc : gọi DAO
+daoc ..> modelc : đóng gói thực thể
+daoc ..> driver : JDBC
 @enduml

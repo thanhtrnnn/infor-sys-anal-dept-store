@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dao.DeliveryStaffDAO;
 import dao.OrderDAO;
 import dao.OrderDetailDAO;
+import dao.OrderDAO.ExportResult;
 import java.util.Date;
 import java.util.stream.Collectors;
 import model.DeliveryStaff;
@@ -42,7 +43,7 @@ class OrderDAOTest {
         return new OrderDAO().approveOrder(o);
     }
 
-    private boolean export(Order o) {
+    private ExportResult export(Order o) {
         o.setStatus("EXPORTED");
         o.setSaleStaff(lan);
         o.setExportedAt(new Date());
@@ -98,11 +99,13 @@ class OrderDAOTest {
         assertTrue(approve(o));
         o.setDeliveryStaff(staff("GH03"));
         assertTrue(new OrderDAO().assignDeliveryStaff(o));
-        assertTrue(export(o));
+        Order reloaded = order(1024);
+        assertEquals("GH03", reloaded.getDeliveryStaff().getCode());
+        assertEquals(ExportResult.EXPORTED, export(reloaded));
         assertEquals("38,115,50,80", stock());                                     // bước 17
         assertEquals("EXPORTED/11/3/1", TestDB.value("SELECT status || '/' || tblStaffid || '/' || tblDeliveryStaffid"
                 + " || '/' || (issueDate IS NOT NULL) FROM tblOrder WHERE id = 1024"));     // bước 18
-        assertFalse(export(o));                                                    // ngoại lệ 16a: không xuất lần hai
+        assertEquals(ExportResult.FAILED, export(o));                              // ngoại lệ 16a: không xuất lần hai
         assertEquals("38,115,50,80", stock());
     }
 
@@ -110,7 +113,7 @@ class OrderDAOTest {
     void exportWithoutAssignedDeliveryStaffIsRejected() throws Exception {
         Order o = order(1026);                       // đã duyệt nhưng chưa phân công trong CSDL
         o.setDeliveryStaff(staff("GH05"));
-        assertFalse(export(o));                                                    // ngoại lệ 16c
+        assertEquals(ExportResult.FAILED, export(o));                              // ngoại lệ 16c
         assertEquals("APPROVED", TestDB.value("SELECT status FROM tblOrder WHERE id = 1026"));
     }
 
@@ -120,9 +123,22 @@ class OrderDAOTest {
         Order o = order(1026);
         o.setDeliveryStaff(staff("GH05"));
         assertTrue(new OrderDAO().assignDeliveryStaff(o));
-        assertFalse(export(o));                                                    // ngoại lệ 16b
+        assertEquals(ExportResult.FAILED, export(o));                              // ngoại lệ 16b
         assertEquals("40,120,60,3", stock());                                      // BR05: không trừ dòng nào
         assertEquals("APPROVED/0", TestDB.value("SELECT status || '/' || (issueDate IS NOT NULL) FROM tblOrder"
                 + " WHERE id = 1026"));
+    }
+
+    @Test
+    void exportOrderWithoutDetailsIsRejected() throws Exception {
+        Order o = order(1026);
+        o.setDeliveryStaff(staff("GH05"));
+        assertTrue(new OrderDAO().assignDeliveryStaff(o));
+        TestDB.exec("DELETE FROM tblOrderDetail WHERE tblOrderid = 1026");
+        o.setDetails(new OrderDetailDAO().getOrderDetailByOrder(1026));
+
+        assertEquals(ExportResult.NO_DETAILS, export(o));
+        assertEquals("APPROVED/0", TestDB.value("SELECT status || '/' || (issueDate IS NOT NULL)"
+                + " FROM tblOrder WHERE id = 1026"));
     }
 }

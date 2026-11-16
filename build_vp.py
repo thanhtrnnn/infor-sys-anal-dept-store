@@ -236,6 +236,18 @@ def communication(key, src, d):
     for a, b, text, ret, n in msgs:
         call("addCommunicationMessage", diagramName=d, fromLifeline=label[a], toLifeline=label[b],
              sequenceNumber=str(n), messageText=text)
+    pos = COMM_LAYOUT.get(d)
+    if pos:  # hand layout: views in one row, actor above, entity below; links stay horizontal / vertical
+        for name, (x, y) in pos.items():
+            call("moveCommunicationLifeline", diagramName=d, lifelineName=name, x=x, y=y)
+        call("rerouteConnectors", diagramName=d)
+        call("layoutConnectorLabels", diagramName=d)
+
+
+COMM_LAYOUT = {  # module 2 keeps the automatic (ELK) layout: 11 participants, 22 links
+    "Giao tiep module 1": {"Khách hàng": (620, 60), "CustomerHomeView": (100, 330), "InvoiceListView": (450, 330),
+                           "InvoiceDetailView": (1050, 330), "Invoice": (640, 520)},
+}
 
 
 # ------------------------------------------------------------------ state
@@ -446,7 +458,7 @@ def deployment(key, src, d):
     N("Apache Tomcat 10+ (Jakarta EE)", "executionEnvironment", "Web Server")
     call("addDeploymentArtifact", diagramName=d, artifactName="deptstore.war", nodeName="Apache Tomcat 10+ (Jakarta EE)",
          x=0, y=0)
-    for c in ("View: gd*.jsp", "Controller: do*.jsp + dao", "Model: model"):
+    for c in ("View: gd*.jsp (hiển thị, gọi DAO)", "Xử lí form: do*.jsp", "DAO: dao (DAO, XxxDAO)", "Model: model"):
         call("addDeploymentComponent", diagramName=d, componentName=c, nodeName="deptstore.war", x=0, y=0)
     call("addDeploymentArtifact", diagramName=d, artifactName="mysql-connector-j.jar", nodeName="deptstore.war",
          x=0, y=0)
@@ -460,12 +472,22 @@ def deployment(key, src, d):
          label="2: JDBC / TCP 3306")
     call("addCommunicationPath", diagramName=d, fromNode="Máy khách (PC / điện thoại)", toNode="Máy in hóa đơn",
          label="3: in hóa đơn (window.print())")
-    call("addDeploymentDependency", diagramName=d, fromElement="View: gd*.jsp", toElement="Controller: do*.jsp + dao",
-         label="submit form")
-    call("addDeploymentDependency", diagramName=d, fromElement="Controller: do*.jsp + dao", toElement="Model: model",
-         label="đóng gói thực thể")
-    call("addDeploymentDependency", diagramName=d, fromElement="Controller: do*.jsp + dao",
-         toElement="mysql-connector-j.jar", label="JDBC")
+    V, F, A = "View: gd*.jsp (hiển thị, gọi DAO)", "Xử lí form: do*.jsp", "DAO: dao (DAO, XxxDAO)"
+    for x, y, lbl in ((V, F, "submit form"), (V, A, "gọi DAO"), (F, A, "gọi DAO"),
+                      (A, "Model: model", "đóng gói thực thể"), (A, "mysql-connector-j.jar", "JDBC")):
+        call("addDeploymentDependency", diagramName=d, fromElement=x, toElement=y, label=lbl)
+    # wide layout: client | web server | database server (the automatic layout stacks them vertically)
+    for name, (x, y, w, h) in {
+            "Máy khách (PC / điện thoại)": (20, 40, 360, 200), "Trình duyệt web": (40, 80, 320, 140),
+            "HTML / CSS / JS (trang do JSP sinh ra)": (60, 130, 280, 50), "Web Server": (520, 20, 1020, 400),
+            "Apache Tomcat 10+ (Jakarta EE)": (540, 60, 980, 320), "deptstore.war": (560, 100, 940, 250),
+            V: (600, 150, 270, 46), F: (960, 150, 220, 46), A: (760, 270, 260, 46),
+            "mysql-connector-j.jar": (580, 270, 160, 46), "Model: model": (1080, 270, 150, 46),
+            "Database Server": (1700, 100, 300, 220), "MySQL 8": (1720, 140, 260, 160),
+            "deptstore (11 bảng tbl*)": (1740, 190, 220, 50), "Máy in hóa đơn": (150, 520, 160, 60)}.items():
+        call("setElementBounds", diagramName=d, elementName=name, x=x, y=y, width=w, height=h)
+    call("rerouteConnectors", diagramName=d)
+    call("layoutConnectorLabels", diagramName=d)
 
 
 # ------------------------------------------------------------------ catalogue: key = PNG name used by the report

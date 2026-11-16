@@ -132,6 +132,12 @@ class WebFlowTest {
                 + " || '/' || status FROM tblOrder WHERE id = 1026"));
         has(get(sale, "nhanvienbanhang/gdInvoicePrint.jsp"), "chưa có hóa đơn để in");
 
+        TestDB.exec("DELETE FROM tblOrderDetail WHERE tblOrderid = 1026");
+        get(sale, "nhanvienbanhang/gdOrderDetail.jsp");                 // nạp lại chi tiết rỗng từ CSDL
+        has(post(sale, "nhanvienbanhang/doExportOrder.jsp"), "Đơn hàng DH1026 không có mặt hàng để xuất");
+        assertEquals("APPROVED/0", TestDB.value("SELECT status || '/' || (issueDate IS NOT NULL)"
+                + " FROM tblOrder WHERE id = 1026"));
+
         // ---- Module 1: khách hàng KH01 theo dõi hóa đơn ----
         HttpClient an = client();
         has(post(an, "doLogin.jsp", "username", "an", "password", "123456"), "Nguyễn Văn An", "Theo dõi hóa đơn");

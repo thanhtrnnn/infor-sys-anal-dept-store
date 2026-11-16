@@ -65,7 +65,7 @@ Needs Python 3.9+ and Java 17+. Graphviz (`dot`) is used if installed; otherwise
 3. Parses all PlantUML sources.
 4. Checks that the generated diagrams match their sources.
 
-Current result: **25/25 tests pass, VERIFIED**. Two sanity checks were run by breaking the code on purpose:
+Current result: **26/26 tests pass, VERIFIED**. Two sanity checks were run by breaking the code on purpose:
 - Removing the `status = 'PENDING'` guard from `approveOrder()` made exactly the cancelled-order test fail.
 - The web test caught a real bug, fixed before release: the shared JSP include lacked a UTF-8 page encoding, so Vietnamese text in it rendered garbled.
 

@@ -29,6 +29,8 @@ FORMS = {
         ("4_So-do-lop-thiet-ke_module-2_NV-ban-hang-duyet-don-xuat-hang", "q3b-4-design-classes-approve-export"),
         ("5_Sequence-diagram_module-1_Khach-hang-theo-doi-hoa-don", "q3c-3-sequence-design-track-invoice"),
         ("6_Sequence-diagram_module-2_NV-ban-hang-duyet-don-xuat-hang", "q3c-4-sequence-design-approve-export"),
+        ("7_Bieu-do-goi", "q5a-package"),
+        ("8_Bieu-do-trien-khai", "q5b-deployment"),
     ],
 }
 INCLUDE = re.compile(r"^(\s*)!include\s+(\S+)\s*$")

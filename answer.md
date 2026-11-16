@@ -524,7 +524,7 @@ public class OrderDAO extends DAO {
 | `gd*.jsp` | – | Kiểm tra phiên đăng nhập (hết phiên thì về `gdLogin.jsp?err=timeout`), gọi DAO, lưu đối tượng vào session, hiển thị. |
 | `do*.jsp` | – | Set thuộc tính cho `Order`, gọi DAO lưu, thông báo kết quả (`alert`) rồi quay về `gdOrderDetail.jsp`. `doExportOrder.jsp` chọn thông báo theo ngoại lệ 16a / 16b / 16c. |
 
-**Kiểm thử** (giáo trình mục 5.3). Chạy bằng `python3 verify.py`, hiện 25/25 ca đạt.
+**Kiểm thử** (giáo trình mục 5.3). Chạy bằng `python3 verify.py`, hiện 26/26 ca đạt.
 
 Kiểm thử đơn vị dùng JUnit, mỗi ca chạy trên một CSDL mới dựng từ `system_schema.sql` + `system_sample_data.sql` (tương đương rollback sau mỗi ca):
 
