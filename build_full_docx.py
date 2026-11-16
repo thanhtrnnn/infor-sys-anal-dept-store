@@ -595,6 +595,175 @@ for n, g in enumerate(groups):
         gone.getparent().remove(gone)
 body.find(qn("w:sectPr")).find(qn("w:pgNumType")).attrib.pop(qn("w:start"), None)
 
+# ---------- 5b. every table gets the same look: thin borders, grey bold header, widths from the content ----------
+TEXT_W = 9070  # 16 cm in twips (A4, 3 cm + 2 cm margins)
+BORDERS = ("top", "left", "bottom", "right", "insideH", "insideV")
+
+
+def cell_text(tc):
+    return "".join(t.text or "" for t in tc.iter(qn("w:t")))
+
+
+for tbl in [t for t in body.iter(qn("w:tbl")) if t.getparent() is body]:
+    grid = tbl.find(qn("w:tblGrid"))
+    cols = len(grid.findall(qn("w:gridCol")))
+    rows = tbl.findall(qn("w:tr"))
+    longest = [6] * cols
+    for tr in rows:
+        c = 0
+        for tc in tr.findall(qn("w:tc")):
+            pr = tc.find(qn("w:tcPr"))
+            span = 1
+            if pr is not None and pr.find(qn("w:gridSpan")) is not None:
+                span = int(pr.find(qn("w:gridSpan")).get(qn("w:val")))
+            if span == 1 and c < cols:
+                words = cell_text(tc).split()
+                longest[c] = max(longest[c], min(max((len(w) for w in words), default=0) + 2, 24),
+                                 min(len(cell_text(tc)) // 3, 40))
+            c += span
+    total = sum(longest)
+    widths = [max(int(TEXT_W * w / total), 700) for w in longest]
+    widths[-1] += TEXT_W - sum(widths)
+    pr = tbl.find(qn("w:tblPr"))
+    if pr is None:
+        pr = el("w:tblPr")
+        tbl.insert(0, pr)
+    for tag in ("w:tblW", "w:tblLayout", "w:tblBorders", "w:tblCellMar", "w:jc"):
+        for old in pr.findall(qn(tag)):
+            pr.remove(old)
+    pr.append(el("w:tblW", **{"w:w": str(TEXT_W), "w:type": "dxa"}))
+    pr.append(el("w:jc", **{"w:val": "center"}))
+    b = el("w:tblBorders")
+    for side in BORDERS:
+        b.append(el(f"w:{side}", **{"w:val": "single", "w:sz": "4", "w:space": "0", "w:color": "000000"}))
+    pr.append(b)
+    pr.append(el("w:tblLayout", **{"w:type": "fixed"}))
+    mar = el("w:tblCellMar")
+    for side, v in (("top", "30"), ("left", "70"), ("bottom", "30"), ("right", "70")):
+        mar.append(el(f"w:{side}", **{"w:w": v, "w:type": "dxa"}))
+    pr.append(mar)
+    for gc, w in zip(grid.findall(qn("w:gridCol")), widths):
+        gc.set(qn("w:w"), str(w))
+    for n_row, tr in enumerate(rows):
+        c = 0
+        for tc in tr.findall(qn("w:tc")):
+            tpr = tc.find(qn("w:tcPr"))
+            if tpr is None:
+                tpr = el("w:tcPr")
+                tc.insert(0, tpr)
+            span = 1
+            if tpr.find(qn("w:gridSpan")) is not None:
+                span = int(tpr.find(qn("w:gridSpan")).get(qn("w:val")))
+            for tag in ("w:tcW", "w:shd"):
+                for old in tpr.findall(qn(tag)):
+                    tpr.remove(old)
+            tpr.insert(0, el("w:tcW", **{"w:w": str(sum(widths[c:c + span])), "w:type": "dxa"}))
+            if n_row == 0:
+                tpr.append(el("w:shd", **{"w:val": "clear", "w:color": "auto", "w:fill": "D9D9D9"}))
+            c += span
+            for par in tc.findall(qn("w:p")):
+                para = Paragraph(par, d)
+                para.paragraph_format.space_before = Pt(0)
+                para.paragraph_format.space_after = Pt(1)
+                para.paragraph_format.line_spacing = 1.0
+                para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER if n_row == 0 else WD_ALIGN_PARAGRAPH.LEFT
+                for run in para.runs:
+                    run.font.size = Pt(10.5)
+                    run.font.bold = True if n_row == 0 else run.font.bold
+    if rows:  # the header repeats on every page the table spans; rows do not split across pages
+        trpr = rows[0].find(qn("w:trPr"))
+        if trpr is None:
+            trpr = el("w:trPr")
+            rows[0].insert(0 if rows[0].find(qn("w:tblPrEx")) is None else 1, trpr)
+        if trpr.find(qn("w:tblHeader")) is None:
+            trpr.append(el("w:tblHeader"))
+    for tr in rows:
+        trpr = tr.find(qn("w:trPr"))
+        if trpr is None:
+            trpr = el("w:trPr")
+            tr.insert(0, trpr)
+        if trpr.find(qn("w:cantSplit")) is None:
+            trpr.insert(0, el("w:cantSplit"))
+
+
+TBLPR_ORDER = ["tblStyle", "tblpPr", "tblOverlap", "bidiVisual", "tblStyleRowBandSize", "tblStyleColBandSize", "tblW", "jc",
+               "tblCellSpacing", "tblInd", "tblBorders", "shd", "tblLayout", "tblCellMar", "tblLook"]
+TCPR_ORDER = ["cnfStyle", "tcW", "gridSpan", "hMerge", "vMerge", "tcBorders", "shd", "noWrap", "tcMar", "textDirection",
+              "tcFitText", "vAlign", "hideMark"]
+
+
+def reorder(parent, order):
+    rank = {qn("w:" + n): i for i, n in enumerate(order)}
+    kids = sorted(list(parent), key=lambda k: rank.get(k.tag, len(order)))
+    for k in kids:
+        parent.remove(k)
+    for k in kids:
+        parent.append(k)
+
+
+for t in body.iter(qn("w:tbl")):
+    reorder(t.find(qn("w:tblPr")), TBLPR_ORDER)
+for t in body.iter(qn("w:tcPr")):
+    reorder(t, TCPR_ORDER)
+
+# ---------- 6. one font for everything: Times New Roman ----------
+FONT = "Times New Roman"
+
+
+def set_fonts(rpr):
+    """Point every script slot of an rPr at Times New Roman and drop theme font references."""
+    rf = rpr.find(qn("w:rFonts"))
+    if rf is None:
+        rf = el("w:rFonts")
+        rpr.insert(0, rf)
+    for att in list(rf.attrib):
+        rf.attrib.pop(att)
+    for att in ("ascii", "hAnsi", "eastAsia", "cs"):
+        rf.set(qn("w:" + att), FONT)
+
+
+styles_el = d.styles.element
+defaults = styles_el.find(qn("w:docDefaults")).find(qn("w:rPrDefault")).find(qn("w:rPr"))
+set_fonts(defaults)
+for rpr in styles_el.iter(qn("w:rPr")):
+    set_fonts(rpr)
+for st in styles_el.findall(qn("w:style")):  # every style carries the font, so nothing falls back to the theme
+    if st.find(qn("w:rPr")) is None:
+        st.append(el("w:rPr"))
+    set_fonts(st.find(qn("w:rPr")))
+for r in body.iter(qn("w:rPr")):  # direct formatting (code blocks used Consolas: Times is narrower, so 10 pt)
+    rf = r.find(qn("w:rFonts"))
+    if rf is not None and rf.get(qn("w:ascii")) == "Consolas":
+        for tag in ("w:sz", "w:szCs"):
+            sz = r.find(qn(tag))
+            if sz is None:
+                sz = el(tag)
+                r.append(sz)
+            sz.set(qn("w:val"), "20")
+    set_fonts(r)
+for sec in d.sections:
+    for part in (sec.footer, sec.header):
+        for e_ in part._element.iter(qn("w:rPr")):
+            set_fonts(e_)
+for part in d.part.package.iter_parts():
+    name = str(part.partname)
+    if name.endswith("theme1.xml"):
+        blob = part.blob.decode("utf-8")
+        for old in ("Calibri", "Cambria"):
+            blob = blob.replace(f'<a:latin typeface="{old}"', f'<a:latin typeface="{FONT}"')
+        part._blob = blob.encode("utf-8")
+    elif name.endswith("numbering.xml"):
+        root = part.element
+        for lvl in root.iter(qn("w:lvl")):
+            txt = lvl.find(qn("w:lvlText"))
+            if txt is not None and txt.get(qn("w:val")) is not None:
+                txt.set(qn("w:val"), "•" if lvl.get(qn("w:ilvl")) == "0" else "–")
+            rpr = lvl.find(qn("w:rPr"))
+            if rpr is None:
+                rpr = el("w:rPr")
+                lvl.append(rpr)
+            set_fonts(rpr)
+
 d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản cuối)"
 d.save(OUT)
 print(f"wrote {OUT.name}: {len(headings)} TOC entries")
