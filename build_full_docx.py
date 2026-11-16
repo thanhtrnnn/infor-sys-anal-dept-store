@@ -457,6 +457,29 @@ first = body[0]
 for p in cover:
     first.addprevious(p._p)
 
+def is_par_el(e):
+    return e is not None and e.tag == qn("w:p")
+
+
+def par_text_el(e):
+    return "".join(t.text or "" for t in e.iter(qn("w:t"))).strip()
+
+
+# ---------- 4b. the exam question fits on one page ----------
+question = next(e for e in body.iterchildren() if is_par_el(e) and par_text_el(e) == "ĐỀ BÀI")
+e = question
+while e is not None:
+    if is_par_el(e) and e.findall(".//" + qn("w:br")) and not par_text_el(e):
+        break  # the page break before the table of contents ends the question page
+    if is_par_el(e) and e is not question:
+        para = Paragraph(e, d)
+        para.paragraph_format.space_after = _Pt(2)
+        para.paragraph_format.line_spacing = 1.0
+        for r in para.runs:
+            r.font.size = _Pt(11)
+    e = e.getnext()
+
+
 # ---------- 5. wide diagrams get their own landscape page ----------
 VPO = ROOT / "diagrams" / "out" / "vp"
 SPL = ROOT / "diagrams" / "out" / "vp_split"
@@ -564,7 +587,12 @@ for t in targets:
         groups.append([t])
 for n, g in enumerate(groups):
     g[0][3].addprevious(section_par(sect_copy(numbering_start=n == 0)))  # ends the portrait section before
-    g[-1][6].addnext(section_par(sect_copy(landscape=True)))  # ends the landscape section
+    end_par = section_par(sect_copy(landscape=True))
+    g[-1][6].addnext(end_par)  # ends the landscape section
+    nxt = end_par.getnext()
+    while is_par(nxt) and not par_text(nxt) and (nxt.findall(".//" + qn("w:br")) or not nxt.findall(".//" + qn("w:drawing"))):
+        gone, nxt = nxt, nxt.getnext()  # the section break already starts a new page: drop empty / page-break paragraphs
+        gone.getparent().remove(gone)
 body.find(qn("w:sectPr")).find(qn("w:pgNumType")).attrib.pop(qn("w:start"), None)
 
 d.core_properties.title = "B23DCAT280 - Hệ thống quản lí cửa hàng bách hóa trực tuyến (bản cuối)"
