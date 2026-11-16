@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 
 import docx
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
@@ -310,6 +310,9 @@ for n, p in enumerate(d.paragraphs):
 
 
 # ---------- 3. table of contents after the exam-question page ----------
+TOC_PAGES = json.load(open(ROOT / "build" / "toc_pages.json")) if (ROOT / "build" / "toc_pages.json").exists() else []
+
+
 def toc_block(entries):
     """A Word TOC field inside a 'Table of Contents' content control, with cached hyperlinked entries."""
     sdt = el("w:sdt")
@@ -341,6 +344,14 @@ def toc_block(entries):
         r.append(t)
         link.append(r)
         p._p.append(link)
+        if TOC_PAGES and i < len(TOC_PAGES):  # right-aligned page number after a dotted leader
+            p.paragraph_format.tab_stops.add_tab_stop(Cm(16.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+            pr = el("w:r")
+            pr.append(el("w:tab"))
+            pt = el("w:t")
+            pt.text = str(TOC_PAGES[i])
+            pr.append(pt)
+            p._p.append(pr)
         if i == len(entries) - 1:
             p._p.append(fld("end"))
         content.append(p._p)
